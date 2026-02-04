@@ -117,6 +117,39 @@ Features:
 - Common `JMAPError` interface with `Type()` and `ToMap()` methods
 - Proper Go error wrapping with `Unwrap()` for `ServerFail`
 
+### dbclient
+
+Shared DynamoDB client utilities for JMAP services.
+
+```go
+import "github.com/jarrod-lowe/jmap-service-libs/dbclient"
+
+// Create client from AWS config (integrates with awsinit)
+result, _ := awsinit.Init(ctx, awsinit.WithHTTPHandler("my-handler"))
+ddb := dbclient.NewClient(result.Config)
+repo := myrepo.New(ddb, os.Getenv("TABLE_NAME"))
+
+// Use key helpers
+pk := dbclient.AccountPK("account-123")  // "ACCOUNT#account-123"
+pk := dbclient.UserPK("user-456")        // "USER#user-456"
+
+// Error handling
+if dbclient.IsConditionalCheckFailed(err) {
+    return ErrNotFound
+}
+if idx := dbclient.GetConditionalCheckFailureIndex(err); idx >= 0 {
+    // Handle specific item failure in transaction
+}
+```
+
+Features:
+
+- `DynamoDBClient` interface for testable repository dependencies
+- `NewClient(cfg aws.Config)` helper integrating with awsinit
+- Key constants: `AttrPK`, `AttrSK`, `PrefixAccount`, `PrefixUser`, `SKMeta`
+- Key helpers: `AccountPK(id)`, `UserPK(id)`
+- Error helpers: `IsConditionalCheckFailed`, `IsTransactionCanceled`, `GetTransactionCancellationReasons`, `HasConditionalCheckFailure`, `GetConditionalCheckFailureIndex`
+
 ## Planned Migrations
 
 The following code patterns have been identified across `jmap-service-core` and `jmap-service-email` as candidates for migration to this shared library.
@@ -131,7 +164,7 @@ These patterns exist in both repositories with minimal variation:
 | ~~`awsinit`~~ | ~~AWS SDK config loading with OTel middleware instrumentation~~ | **Done** - see `awsinit` package |
 | ~~`jmaperror`~~ | ~~JMAP protocol error response formatting, standard error type constants (`unknownMethod`, `invalidArguments`, `serverFail`, etc.)~~ | **Done** - see `jmaperror` package |
 | `auth` | Account ID extraction from JWT claims and IAM path parameters, IAM authentication detection, ARN normalization, principal authorization | `jmap-service-core/cmd/*/main.go`, `jmap-service-core/internal/plugin/authorization.go` |
-| `dbclient` | DynamoDB client interface definition, key prefix constants (`ACCOUNT#`, `META#`, etc.), conditional check error handling helpers | `jmap-service-core/internal/db/`, `jmap-service-email/internal/dynamo/`, repository files in both repos |
+| ~~`dbclient`~~ | ~~DynamoDB client interface definition, key prefix constants (`ACCOUNT#`, `META#`, etc.), conditional check error handling helpers~~ | **Done** - see `dbclient` package |
 | `plugincontract` | JMAP plugin invocation request/response types (`PluginInvocationRequest`, `PluginInvocationResponse`, `MethodResponse`) | `jmap-service-core/pkg/plugincontract/` — verify `jmap-service-email` uses this |
 | `apiresponse` | API Gateway proxy response formatting, HTTP error response helpers | `jmap-service-core/cmd/blob-upload/main.go`, `jmap-service-core/cmd/blob-download/main.go` |
 
@@ -145,7 +178,7 @@ These patterns are similar but need some generalization:
 | `arnutil` | ARN parsing, SQS ARN to Queue URL conversion | `jmap-service-core/cmd/account-init/main.go` |
 | `httpclient` | HTTP client wrapper with exponential backoff retry | `jmap-service-email/internal/blob/client.go` |
 | `sqspublish` | Generic SQS message publisher with JSON serialization | `jmap-service-email/internal/blobdelete/publisher.go`, `jmap-service-email/internal/mailboxcleanup/publisher.go` |
-| `txerror` | DynamoDB `TransactionCanceledException` handling, conditional check failure detection and categorization | Multiple repository files in both repos |
+| ~~`txerror`~~ | ~~DynamoDB `TransactionCanceledException` handling, conditional check failure detection and categorization~~ | **Done** - merged into `dbclient` package |
 
 ### Future Candidates — Currently in One Repository
 
