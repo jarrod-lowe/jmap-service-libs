@@ -51,6 +51,44 @@ Features:
 - Option pattern for overriding level or output
 - Zero dependencies beyond standard library
 
+### awsinit
+
+Lambda initialization with OpenTelemetry tracing for AWS Lambda handlers.
+
+```go
+import "github.com/jarrod-lowe/jmap-service-libs/awsinit"
+
+// HTTP handler (API Gateway) - creates cold start span
+result, err := awsinit.Init(context.Background(),
+    awsinit.WithHTTPHandler("jmap-api"),
+)
+if err != nil {
+    panic(err)
+}
+defer result.Cleanup()
+
+ddb := dynamodb.NewFromConfig(result.Config)
+handler := NewHandler(ddb)
+result.Start(handler.Handle)
+
+// Event-driven handler (SQS, SNS, etc.)
+result, err := awsinit.Init(context.Background())
+if err != nil {
+    panic(err)
+}
+sqsClient := sqs.NewFromConfig(result.Config)
+result.Start(handler.Handle)
+```
+
+Features:
+
+- Encapsulates Lambda bootstrap boilerplate (~15 lines → ~3 lines)
+- Automatic OTel tracing initialization with X-Ray
+- AWS config loading with OTel middleware
+- Cold start span for HTTP handlers
+- Handler instrumentation via `otellambda`
+- Distinct error types for debugging
+
 ## Planned Migrations
 
 The following code patterns have been identified across `jmap-service-core` and `jmap-service-email` as candidates for migration to this shared library.
@@ -62,7 +100,7 @@ These patterns exist in both repositories with minimal variation:
 | Package | Description | Source Locations |
 | ------- | ----------- | ---------------- |
 | ~~`logging`~~ | ~~Structured JSON logging setup with `slog.NewJSONHandler`~~ | **Done** - see `logging` package |
-| `awsinit` | AWS SDK config loading with OTel middleware instrumentation | All `main.go` files in both repos |
+| ~~`awsinit`~~ | ~~AWS SDK config loading with OTel middleware instrumentation~~ | **Done** - see `awsinit` package |
 | `jmaperror` | JMAP protocol error response formatting, standard error type constants (`unknownMethod`, `invalidArguments`, `serverFail`, etc.) | All command handlers in both repos |
 | `auth` | Account ID extraction from JWT claims and IAM path parameters, IAM authentication detection, ARN normalization, principal authorization | `jmap-service-core/cmd/*/main.go`, `jmap-service-core/internal/plugin/authorization.go` |
 | `dbclient` | DynamoDB client interface definition, key prefix constants (`ACCOUNT#`, `META#`, etc.), conditional check error handling helpers | `jmap-service-core/internal/db/`, `jmap-service-email/internal/dynamo/`, repository files in both repos |
