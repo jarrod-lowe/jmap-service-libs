@@ -89,6 +89,34 @@ Features:
 - Handler instrumentation via `otellambda`
 - Distinct error types for debugging
 
+### jmaperror
+
+Type-safe JMAP error handling per RFC 8620.
+
+```go
+import "github.com/jarrod-lowe/jmap-service-libs/jmaperror"
+
+// Method-level errors (returned in methodResponses)
+err := jmaperror.InvalidArguments("mailboxId must be provided")
+err := jmaperror.ServerFail("database error", underlyingErr)
+
+// Set errors (per-object failures in Foo/set)
+err := jmaperror.NotFound("object not found")
+err := jmaperror.InvalidProperties("invalid values", []string{"name", "email"})
+
+// HTTP problems (request-level failures as application/problem+json)
+err := jmaperror.NotJSON("request body is not valid JSON")
+err := jmaperror.Limit("maxSizeRequest", "request exceeds 10MB")
+```
+
+Features:
+
+- **MethodError**: `UnknownMethod`, `InvalidArguments`, `ServerFail`, `AccountNotFound`, `InvalidResultReference`, `StateMismatch`, `Forbidden`
+- **SetError**: `NotFound`, `InvalidProperties`, `TooLarge`, `OverQuota`, `TooManyPending`, `BlobNotFound`, `InvalidMailboxId`, `InvalidEmail`
+- **HTTPProblem**: `UnknownCapability`, `NotJSON`, `NotRequest`, `Limit`
+- Common `JMAPError` interface with `Type()` and `ToMap()` methods
+- Proper Go error wrapping with `Unwrap()` for `ServerFail`
+
 ## Planned Migrations
 
 The following code patterns have been identified across `jmap-service-core` and `jmap-service-email` as candidates for migration to this shared library.
@@ -101,7 +129,7 @@ These patterns exist in both repositories with minimal variation:
 | ------- | ----------- | ---------------- |
 | ~~`logging`~~ | ~~Structured JSON logging setup with `slog.NewJSONHandler`~~ | **Done** - see `logging` package |
 | ~~`awsinit`~~ | ~~AWS SDK config loading with OTel middleware instrumentation~~ | **Done** - see `awsinit` package |
-| `jmaperror` | JMAP protocol error response formatting, standard error type constants (`unknownMethod`, `invalidArguments`, `serverFail`, etc.) | All command handlers in both repos |
+| ~~`jmaperror`~~ | ~~JMAP protocol error response formatting, standard error type constants (`unknownMethod`, `invalidArguments`, `serverFail`, etc.)~~ | **Done** - see `jmaperror` package |
 | `auth` | Account ID extraction from JWT claims and IAM path parameters, IAM authentication detection, ARN normalization, principal authorization | `jmap-service-core/cmd/*/main.go`, `jmap-service-core/internal/plugin/authorization.go` |
 | `dbclient` | DynamoDB client interface definition, key prefix constants (`ACCOUNT#`, `META#`, etc.), conditional check error handling helpers | `jmap-service-core/internal/db/`, `jmap-service-email/internal/dynamo/`, repository files in both repos |
 | `plugincontract` | JMAP plugin invocation request/response types (`PluginInvocationRequest`, `PluginInvocationResponse`, `MethodResponse`) | `jmap-service-core/pkg/plugincontract/` — verify `jmap-service-email` uses this |
