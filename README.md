@@ -10,7 +10,21 @@ go get github.com/jarrod-lowe/jmap-service-libs
 
 ## Available Packages
 
-*No packages available yet. Packages will be added as they are migrated from sibling services.*
+### tracing
+
+OpenTelemetry/X-Ray instrumentation for JMAP services running on AWS Lambda.
+
+```go
+import "github.com/jarrod-lowe/jmap-service-libs/tracing"
+```
+
+Features:
+
+- Automatic X-Ray and W3C Trace Context propagation
+- Standardized attribute helpers: `RequestID`, `AccountID`, `BlobID`, `ParentBlobID`, `ContentType`, `Function`, `JMAPMethod`, `JMAPClientID`, `JMAPCallIndex`
+- Span creation helpers: `StartHandlerSpan`, `StartMethodSpan`, `StartColdStartSpan`
+- Error recording with proper status codes: `RecordError`
+- Convenience tracer wrapper: `Tracer`
 
 ## Planned Migrations
 
@@ -22,7 +36,6 @@ These patterns exist in both repositories with minimal variation:
 
 | Package | Description | Source Locations |
 | ------- | ----------- | ---------------- |
-| `tracing` | OpenTelemetry/X-Ray tracer initialization, cold start spans, handler/method spans, standard attribute helpers (RequestID, AccountID, BlobID, etc.) | `jmap-service-core/internal/tracing/tracing.go`, all `cmd/*/main.go` in both repos |
 | `logging` | Structured JSON logging setup with `slog.NewJSONHandler` | All `main.go` files in both repos |
 | `awsinit` | AWS SDK config loading with OTel middleware instrumentation | All `main.go` files in both repos |
 | `jmaperror` | JMAP protocol error response formatting, standard error type constants (`unknownMethod`, `invalidArguments`, `serverFail`, etc.) | All command handlers in both repos |

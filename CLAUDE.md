@@ -39,3 +39,9 @@ replace github.com/jarrod-lowe/jmap-service-libs => ../jmap-service-libs
 ```
 
 Remove the replace directive before committing.
+
+## Development Process
+
+All code changes **MUST** use the Test Driven Design (TDD) Superpower. Note in any plans that RED tests **MUST** compile, run, not panic, and fail - if they do not run, they do not prove we have testing.
+
+All code must use suitable standard libraries wherever possible, in preference to writing things ourselves. All code must be clean and simple. All code must detect errors, and propagate them outward as distinct Error types - we use proper go Error methods for working with error types. Do not write fallbacks unless specifically required by the protocol in question - if a thing does not work, it errors. Use types and interfaces. If we are only going to use part of an interface from an external library, write our own sub-interface for interacting with it.
