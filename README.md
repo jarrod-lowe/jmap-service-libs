@@ -26,6 +26,31 @@ Features:
 - Error recording with proper status codes: `RecordError`
 - Convenience tracer wrapper: `Tracer`
 
+### logging
+
+Structured JSON logging for Lambda environments using `slog`.
+
+```go
+import "github.com/jarrod-lowe/jmap-service-libs/logging"
+
+// Simple usage - reads LOG_LEVEL from environment (DEBUG, INFO, WARN, ERROR)
+var logger = logging.New()
+
+// Override log level programmatically
+var debugLogger = logging.New(logging.WithLevel(slog.LevelDebug))
+
+// Capture output for testing
+var buf bytes.Buffer
+testLogger := logging.New(logging.WithOutput(&buf))
+```
+
+Features:
+
+- JSON output format for CloudWatch Logs
+- Environment-based log level via `LOG_LEVEL` (defaults to INFO)
+- Option pattern for overriding level or output
+- Zero dependencies beyond standard library
+
 ## Planned Migrations
 
 The following code patterns have been identified across `jmap-service-core` and `jmap-service-email` as candidates for migration to this shared library.
@@ -36,7 +61,7 @@ These patterns exist in both repositories with minimal variation:
 
 | Package | Description | Source Locations |
 | ------- | ----------- | ---------------- |
-| `logging` | Structured JSON logging setup with `slog.NewJSONHandler` | All `main.go` files in both repos |
+| ~~`logging`~~ | ~~Structured JSON logging setup with `slog.NewJSONHandler`~~ | **Done** - see `logging` package |
 | `awsinit` | AWS SDK config loading with OTel middleware instrumentation | All `main.go` files in both repos |
 | `jmaperror` | JMAP protocol error response formatting, standard error type constants (`unknownMethod`, `invalidArguments`, `serverFail`, etc.) | All command handlers in both repos |
 | `auth` | Account ID extraction from JWT claims and IAM path parameters, IAM authentication detection, ARN normalization, principal authorization | `jmap-service-core/cmd/*/main.go`, `jmap-service-core/internal/plugin/authorization.go` |
