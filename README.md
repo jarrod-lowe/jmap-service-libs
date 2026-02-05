@@ -150,6 +150,41 @@ Features:
 - Key helpers: `AccountPK(id)`, `UserPK(id)`
 - Error helpers: `IsConditionalCheckFailed`, `IsTransactionCanceled`, `GetTransactionCancellationReasons`, `HasConditionalCheckFailure`, `GetConditionalCheckFailureIndex`
 
+### plugincontract
+
+JMAP plugin communication types for the core-to-plugin invocation contract.
+
+```go
+import "github.com/jarrod-lowe/jmap-service-libs/plugincontract"
+
+func handler(ctx context.Context, req plugincontract.PluginInvocationRequest) (plugincontract.PluginInvocationResponse, error) {
+    // Extract arguments using type-safe Args helpers
+    accountID, _ := req.Args.String("accountId")
+    ids, _ := req.Args.StringSlice("ids")
+    limit := req.Args.IntOr("limit", 100)
+
+    // Process request...
+
+    return plugincontract.PluginInvocationResponse{
+        MethodResponse: plugincontract.MethodResponse{
+            Name:     req.Method,
+            Args:     plugincontract.Args{"accountId": accountID, "list": results},
+            ClientID: req.ClientID,
+        },
+    }, nil
+}
+```
+
+Features:
+
+- `PluginInvocationRequest` - Request payload sent from core to plugin
+- `PluginInvocationResponse` - Response wrapper from plugin to core
+- `MethodResponse` - JMAP method response structure
+- `EventPayload` - System event payload delivered via SQS
+- `Args` type with helper methods: `String`, `StringOr`, `Int`, `IntOr`, `Float`, `Bool`, `BoolOr`, `StringSlice`, `Object`, `Has`
+
+See [docs/plugin-interface.md](docs/plugin-interface.md) for the full plugin author guide.
+
 ## Planned Migrations
 
 The following code patterns have been identified across `jmap-service-core` and `jmap-service-email` as candidates for migration to this shared library.
@@ -163,9 +198,8 @@ These patterns exist in both repositories with minimal variation:
 | ~~`logging`~~ | ~~Structured JSON logging setup with `slog.NewJSONHandler`~~ | **Done** - see `logging` package |
 | ~~`awsinit`~~ | ~~AWS SDK config loading with OTel middleware instrumentation~~ | **Done** - see `awsinit` package |
 | ~~`jmaperror`~~ | ~~JMAP protocol error response formatting, standard error type constants (`unknownMethod`, `invalidArguments`, `serverFail`, etc.)~~ | **Done** - see `jmaperror` package |
-| `auth` | Account ID extraction from JWT claims and IAM path parameters, IAM authentication detection, ARN normalization, principal authorization | `jmap-service-core/cmd/*/main.go`, `jmap-service-core/internal/plugin/authorization.go` |
 | ~~`dbclient`~~ | ~~DynamoDB client interface definition, key prefix constants (`ACCOUNT#`, `META#`, etc.), conditional check error handling helpers~~ | **Done** - see `dbclient` package |
-| `plugincontract` | JMAP plugin invocation request/response types (`PluginInvocationRequest`, `PluginInvocationResponse`, `MethodResponse`) | `jmap-service-core/pkg/plugincontract/` — verify `jmap-service-email` uses this |
+| ~~`plugincontract`~~ | ~~JMAP plugin invocation request/response types (`PluginInvocationRequest`, `PluginInvocationResponse`, `MethodResponse`)~~ | **Done** - see `plugincontract` package |
 | `apiresponse` | API Gateway proxy response formatting, HTTP error response helpers | `jmap-service-core/cmd/blob-upload/main.go`, `jmap-service-core/cmd/blob-download/main.go` |
 
 ### Medium Priority — Similar Patterns Requiring Abstraction
@@ -186,6 +220,7 @@ These patterns exist in only one repo but are likely needed as more services are
 
 | Package | Description | Current Location | Rationale |
 | ------- | ----------- | ---------------- | --------- |
+| `auth` | Account ID extraction from JWT claims and IAM path parameters, IAM authentication detection, ARN normalization, principal authorization | `jmap-service-core/cmd/*/main.go`, `jmap-service-core/internal/plugin/authorization.go` | Any service needing direct client authentication |
 | `resultref` | JMAP result reference resolution (RFC 8620 §3.7), JSON pointer evaluation with wildcard support | `jmap-service-core/internal/resultref/` | Any service processing JMAP method calls |
 | `plugininvoke` | Lambda-based plugin invocation interface and implementation | `jmap-service-core/internal/plugin/invoker.go` | Core pattern for JMAP method dispatch |
 | `pluginregistry` | Plugin metadata registry, method-to-Lambda routing, capability management | `jmap-service-core/internal/plugin/registry.go` | Central to JMAP multi-service architecture |
