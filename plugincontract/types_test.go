@@ -16,7 +16,9 @@ func TestPluginInvocationRequest_JSONUnmarshal(t *testing.T) {
 			"ids": ["email-1", "email-2"],
 			"properties": ["id", "subject", "from"]
 		},
-		"clientId": "c0"
+		"clientId": "c0",
+		"cdnUrl": "https://cdn.example.com",
+		"apiUrl": "https://api.example.com/stage"
 	}`
 
 	var req PluginInvocationRequest
@@ -39,6 +41,12 @@ func TestPluginInvocationRequest_JSONUnmarshal(t *testing.T) {
 	}
 	if req.ClientID != "c0" {
 		t.Errorf("ClientID: expected 'c0', got %q", req.ClientID)
+	}
+	if req.CDNURL != "https://cdn.example.com" {
+		t.Errorf("CDNURL: expected 'https://cdn.example.com', got %q", req.CDNURL)
+	}
+	if req.APIURL != "https://api.example.com/stage" {
+		t.Errorf("APIURL: expected 'https://api.example.com/stage', got %q", req.APIURL)
 	}
 
 	// Test Args helper methods work on unmarshaled data
@@ -70,6 +78,8 @@ func TestPluginInvocationRequest_JSONMarshal(t *testing.T) {
 			"ids":       []any{"mb-1"},
 		},
 		ClientID: "c1",
+		CDNURL:   "https://cdn.test.com",
+		APIURL:   "https://api.test.com/v1",
 	}
 
 	data, err := json.Marshal(req)
@@ -98,6 +108,69 @@ func TestPluginInvocationRequest_JSONMarshal(t *testing.T) {
 	}
 	if result["clientId"] != "c1" {
 		t.Errorf("clientId: expected 'c1', got %v", result["clientId"])
+	}
+	if result["cdnUrl"] != "https://cdn.test.com" {
+		t.Errorf("cdnUrl: expected 'https://cdn.test.com', got %v", result["cdnUrl"])
+	}
+	if result["apiUrl"] != "https://api.test.com/v1" {
+		t.Errorf("apiUrl: expected 'https://api.test.com/v1', got %v", result["apiUrl"])
+	}
+}
+
+func TestPluginInvocationRequest_URLFields_JSONUnmarshal(t *testing.T) {
+	jsonData := `{
+		"requestId": "req-1",
+		"callIndex": 0,
+		"accountId": "acc-1",
+		"method": "Foo/get",
+		"args": {},
+		"clientId": "c0",
+		"cdnUrl": "https://d123.cloudfront.net",
+		"apiUrl": "https://abc123.execute-api.us-east-1.amazonaws.com/prod"
+	}`
+
+	var req PluginInvocationRequest
+	err := json.Unmarshal([]byte(jsonData), &req)
+	if err != nil {
+		t.Fatalf("failed to unmarshal: %v", err)
+	}
+
+	if req.CDNURL != "https://d123.cloudfront.net" {
+		t.Errorf("CDNURL: expected 'https://d123.cloudfront.net', got %q", req.CDNURL)
+	}
+	if req.APIURL != "https://abc123.execute-api.us-east-1.amazonaws.com/prod" {
+		t.Errorf("APIURL: expected 'https://abc123.execute-api.us-east-1.amazonaws.com/prod', got %q", req.APIURL)
+	}
+}
+
+func TestPluginInvocationRequest_URLFields_JSONMarshal(t *testing.T) {
+	req := PluginInvocationRequest{
+		RequestID: "req-1",
+		CallIndex: 0,
+		AccountID: "acc-1",
+		Method:    "Foo/get",
+		Args:      Args{},
+		ClientID:  "c0",
+		CDNURL:    "https://d123.cloudfront.net",
+		APIURL:    "https://abc123.execute-api.us-east-1.amazonaws.com/prod",
+	}
+
+	data, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("failed to marshal: %v", err)
+	}
+
+	var roundTripped PluginInvocationRequest
+	err = json.Unmarshal(data, &roundTripped)
+	if err != nil {
+		t.Fatalf("failed to unmarshal round-trip: %v", err)
+	}
+
+	if roundTripped.CDNURL != req.CDNURL {
+		t.Errorf("CDNURL round-trip: expected %q, got %q", req.CDNURL, roundTripped.CDNURL)
+	}
+	if roundTripped.APIURL != req.APIURL {
+		t.Errorf("APIURL round-trip: expected %q, got %q", req.APIURL, roundTripped.APIURL)
 	}
 }
 

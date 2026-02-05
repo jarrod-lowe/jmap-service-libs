@@ -8,6 +8,8 @@ type PluginInvocationRequest struct {
 	Method    string `json:"method"`
 	Args      Args   `json:"args"`
 	ClientID  string `json:"clientId"`
+	CDNURL    string `json:"cdnUrl"`
+	APIURL    string `json:"apiUrl"`
 }
 
 // PluginInvocationResponse is the response from plugin to core.

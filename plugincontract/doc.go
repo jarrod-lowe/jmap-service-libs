@@ -15,6 +15,8 @@
 //	    Method    string // JMAP method name (e.g., "Email/get")
 //	    Args      Args   // Method arguments
 //	    ClientID  string // Client-provided call identifier
+//	    CDNURL    string // CDN base URL for the current stage
+//	    APIURL    string // API Gateway base URL for the current stage
 //	}
 //
 // Plugins respond with a PluginInvocationResponse containing a MethodResponse:
