@@ -57,6 +57,7 @@ jobs:
         if: steps.check.outputs.needed == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
+          sign-commits: true
           branch: go-update/${{ steps.latest.outputs.version }}
           commit-message: "Update Go to ${{ steps.latest.outputs.version }}"
           title: "Update Go to ${{ steps.latest.outputs.version }}"
