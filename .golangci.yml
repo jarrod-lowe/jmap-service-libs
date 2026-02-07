@@ -1,0 +1,11 @@
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - gosec
+
+linters-settings:
+  gosec:
+    excludes: []

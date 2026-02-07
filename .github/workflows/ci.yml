@@ -4,20 +4,23 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 concurrency:
-  group: auto-tag
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   MAJOR: 1
   MINOR: 0
 
 jobs:
-  ci-and-tag:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,13 +31,53 @@ jobs:
         with:
           go-version: '1.24'
 
+      - name: Install tools
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          go install github.com/google/go-licenses@latest
+          go install golang.org/x/exp/cmd/apidiff@latest
+
+      - name: Check formatting
+        run: make fmt-check
+
+      - name: Check go.mod is tidy
+        run: make mod-check
+
       - name: Run tests
         run: make test
+
+      - name: Run tests with race detector
+        run: make test-race
+
+      - name: Run fuzz tests
+        run: make fuzz FUZZ_TIME=10s
 
       - name: Run linter
         uses: golangci/golangci-lint-action@v7
         with:
           version: latest
+
+      - name: Run vulnerability check
+        run: make vulncheck
+
+      - name: Check dependency licenses
+        run: make license-check
+
+      - name: Check for breaking API changes
+        run: |
+          git fetch --tags
+          make apidiff
+
+  tag:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: ci
+    runs-on: ubuntu-latest
+    concurrency:
+      group: auto-tag
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Push tag
         run: |
