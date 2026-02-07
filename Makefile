@@ -184,7 +184,7 @@ setup: setup-repo setup-branch-protection
 
 setup-repo:
 	@echo "Configuring repository settings..."
-	gh repo edit --delete-branch-on-merge --enable-wiki=false
+	gh repo edit --delete-branch-on-merge --enable-auto-merge --enable-wiki=false
 	gh api -X PUT repos/{owner}/{repo}/actions/permissions/workflow \
 		-f default_workflow_permissions=read \
 		-F can_approve_pull_request_reviews=true
