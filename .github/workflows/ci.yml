@@ -1,0 +1,46 @@
+name: CI and Auto-Tag
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-tag
+  cancel-in-progress: false
+
+env:
+  MAJOR: 1
+  MINOR: 0
+
+jobs:
+  ci-and-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Run tests
+        run: make test
+
+      - name: Run linter
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: latest
+
+      - name: Push tag
+        run: |
+          TAG="v${MAJOR}.${MINOR}.${{ github.run_number }}"
+          echo "Tagging as ${TAG}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${TAG}"
+          git push origin "${TAG}"
