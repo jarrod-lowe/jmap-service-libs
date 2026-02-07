@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"log/slog"
-	"os"
 	"testing"
 )
 
 func TestNew_DefaultLevel(t *testing.T) {
 	// Ensure LOG_LEVEL is not set
-	os.Unsetenv("LOG_LEVEL")
+	t.Setenv("LOG_LEVEL", "")
 
 	var buf bytes.Buffer
 	logger := New(WithOutput(&buf))
@@ -30,7 +29,7 @@ func TestNew_DefaultLevel(t *testing.T) {
 }
 
 func TestNew_OutputsJSON(t *testing.T) {
-	os.Unsetenv("LOG_LEVEL")
+	t.Setenv("LOG_LEVEL", "")
 
 	var buf bytes.Buffer
 	logger := New(WithOutput(&buf))
@@ -62,8 +61,7 @@ func TestNew_OutputsJSON(t *testing.T) {
 }
 
 func TestNew_EnvLevelDebug(t *testing.T) {
-	os.Setenv("LOG_LEVEL", "DEBUG")
-	defer os.Unsetenv("LOG_LEVEL")
+	t.Setenv("LOG_LEVEL", "DEBUG")
 
 	var buf bytes.Buffer
 	logger := New(WithOutput(&buf))
@@ -76,8 +74,7 @@ func TestNew_EnvLevelDebug(t *testing.T) {
 }
 
 func TestNew_EnvLevelWarn(t *testing.T) {
-	os.Setenv("LOG_LEVEL", "WARN")
-	defer os.Unsetenv("LOG_LEVEL")
+	t.Setenv("LOG_LEVEL", "WARN")
 
 	var buf bytes.Buffer
 	logger := New(WithOutput(&buf))
@@ -97,8 +94,7 @@ func TestNew_EnvLevelWarn(t *testing.T) {
 }
 
 func TestNew_EnvLevelError(t *testing.T) {
-	os.Setenv("LOG_LEVEL", "ERROR")
-	defer os.Unsetenv("LOG_LEVEL")
+	t.Setenv("LOG_LEVEL", "ERROR")
 
 	var buf bytes.Buffer
 	logger := New(WithOutput(&buf))
@@ -118,8 +114,7 @@ func TestNew_EnvLevelError(t *testing.T) {
 }
 
 func TestNew_EnvLevelInvalid(t *testing.T) {
-	os.Setenv("LOG_LEVEL", "INVALID")
-	defer os.Unsetenv("LOG_LEVEL")
+	t.Setenv("LOG_LEVEL", "INVALID")
 
 	var buf bytes.Buffer
 	logger := New(WithOutput(&buf))
@@ -140,8 +135,7 @@ func TestNew_EnvLevelInvalid(t *testing.T) {
 
 func TestNew_WithLevelOverridesEnv(t *testing.T) {
 	// Set env to ERROR but override with DEBUG via option
-	os.Setenv("LOG_LEVEL", "ERROR")
-	defer os.Unsetenv("LOG_LEVEL")
+	t.Setenv("LOG_LEVEL", "ERROR")
 
 	var buf bytes.Buffer
 	logger := New(WithLevel(slog.LevelDebug), WithOutput(&buf))
@@ -154,7 +148,7 @@ func TestNew_WithLevelOverridesEnv(t *testing.T) {
 }
 
 func TestNew_WithOutput(t *testing.T) {
-	os.Unsetenv("LOG_LEVEL")
+	t.Setenv("LOG_LEVEL", "")
 
 	var buf1, buf2 bytes.Buffer
 	logger1 := New(WithOutput(&buf1))
@@ -181,7 +175,7 @@ func TestNew_WithOutput(t *testing.T) {
 }
 
 func TestNew_DefaultOutput(t *testing.T) {
-	os.Unsetenv("LOG_LEVEL")
+	t.Setenv("LOG_LEVEL", "")
 
 	// Create logger without WithOutput - should not panic
 	logger := New()

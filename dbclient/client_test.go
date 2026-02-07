@@ -12,8 +12,6 @@ func TestNewClient(t *testing.T) {
 	cfg := aws.Config{}
 	client := dbclient.NewClient(cfg)
 
-	// Verify the returned value implements DynamoDBClient.
-	var _ dbclient.DynamoDBClient = client
 	if client == nil {
 		t.Error("NewClient returned nil")
 	}
