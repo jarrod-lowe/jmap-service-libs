@@ -9,7 +9,8 @@
       "fuzz",
       "lint",
       "license-check",
-      "apidiff"
+      "apidiff",
+      "vulncheck"
     ]
   },
   "enforce_admins": true,
