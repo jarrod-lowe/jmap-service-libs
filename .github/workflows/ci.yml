@@ -161,7 +161,7 @@ jobs:
 
   tag:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [fmt-check, mod-check, test, test-race, fuzz, lint, license-check, apidiff]
+    needs: [fmt-check, mod-check, test, test-race, fuzz, lint, license-check, apidiff, vulncheck]
     runs-on: ubuntu-latest
     concurrency:
       group: auto-tag
