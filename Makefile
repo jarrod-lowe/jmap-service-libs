@@ -21,7 +21,7 @@ help:
 	@echo ""
 	@echo "Repository setup (requires gh CLI and admin access):"
 	@echo "  make setup                   - Run all repo setup targets"
-	@echo "  make setup-repo              - Disable wiki"
+	@echo "  make setup-repo              - Configure repo settings and Actions permissions"
 	@echo "  make setup-branch-protection - Apply branch protection to main"
 	@echo ""
 
@@ -156,6 +156,9 @@ setup: setup-repo setup-branch-protection
 setup-repo:
 	@echo "Configuring repository settings..."
 	gh repo edit --delete-branch-on-merge --enable-wiki=false
+	gh api -X PUT repos/{owner}/{repo}/actions/permissions/workflow \
+		-f default_workflow_permissions=read \
+		-F can_approve_pull_request_reviews=true
 	@echo "Repository settings applied."
 
 setup-branch-protection:
