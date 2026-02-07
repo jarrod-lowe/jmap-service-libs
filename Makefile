@@ -46,7 +46,7 @@ lint:
 	@PATH="$(HOME)/go/bin:$$PATH"; \
 	if ! command -v golangci-lint >/dev/null 2>&1; then \
 		echo "ERROR: golangci-lint is not installed"; \
-		echo "Install it with: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest"; \
+		echo "Install it with: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest"; \
 		exit 1; \
 	fi; \
 	echo "Running golangci-lint..."; \
@@ -109,7 +109,7 @@ license-check:
 		exit 1; \
 	fi; \
 	echo "Checking dependency licenses..."; \
-	go-licenses check --ignore github.com/jarrod-lowe/jmap-service-libs ./... 2>&1
+	GOTOOLCHAIN=local go-licenses check --ignore github.com/jarrod-lowe/jmap-service-libs ./... 2>&1
 
 # Detect breaking API changes vs last tag
 apidiff:
