@@ -68,16 +68,45 @@ fmt-check:
 	fi; \
 	echo "All files are formatted."
 
-# Run fuzz tests with a time limit
+# Run fuzz tests in parallel with a time limit
 fuzz:
-	@echo "Running fuzz tests ($(FUZZ_TIME) per target)..."
-	@for pkg in plugincontract jmaperror; do \
+	@echo "Running fuzz tests in parallel ($(FUZZ_TIME) per target)..."
+	@TMPDIR=$$(mktemp -d) && \
+	trap 'rm -rf "$$TMPDIR"' EXIT && \
+	PIDS="" && \
+	NAMES="" && \
+	for pkg in plugincontract jmaperror; do \
 		for fuzz_func in $$(go test -list 'Fuzz.*' ./$$pkg/... 2>/dev/null | grep '^Fuzz'); do \
-			echo "Fuzzing $$pkg/$$fuzz_func..."; \
-			go test -fuzz="^$$fuzz_func$$" -fuzztime=$(FUZZ_TIME) ./$$pkg/... || exit 1; \
+			echo "  Starting $$pkg/$$fuzz_func..." && \
+			go test -fuzz="^$$fuzz_func$$" -fuzztime=$(FUZZ_TIME) -parallel=1 ./$$pkg/... \
+				> "$$TMPDIR/$$pkg-$$fuzz_func.out" 2>&1 & \
+			PIDS="$$PIDS $$!" && \
+			NAMES="$$NAMES $$pkg/$$fuzz_func" && \
+			true; \
 		done; \
-	done
-	@echo "Fuzz testing complete."
+	done && \
+	echo "  All fuzz targets launched." && \
+	FAILED=0 && \
+	set -- $$NAMES && \
+	for pid in $$PIDS; do \
+		NAME=$$1 && shift && \
+		PKG=$${NAME%/*} && \
+		FUNC=$${NAME#*/} && \
+		if wait $$pid; then \
+			echo "  PASS: $$NAME"; \
+		else \
+			echo "  FAIL: $$NAME" && \
+			echo "--- Output from $$NAME ---" && \
+			cat "$$TMPDIR/$$PKG-$$FUNC.out" && \
+			echo "--- End output ---" && \
+			FAILED=$$((FAILED + 1)); \
+		fi; \
+	done && \
+	if [ "$$FAILED" -gt 0 ]; then \
+		echo "$$FAILED fuzz target(s) failed." && \
+		exit 1; \
+	fi && \
+	echo "All fuzz targets passed."
 
 # Scan dependencies for known CVEs
 vulncheck:
