@@ -1,4 +1,4 @@
-.PHONY: help deps test test-race lint fmt fmt-check fuzz vulncheck mod-check license-check apidiff clean
+.PHONY: help deps test test-race lint fmt fmt-check fuzz vulncheck mod-check license-check apidiff clean setup setup-repo setup-branch-protection
 
 FUZZ_TIME ?= 30s
 
@@ -18,6 +18,11 @@ help:
 	@echo "  make license-check - Check dependency license compatibility"
 	@echo "  make apidiff       - Detect breaking API changes vs last tag"
 	@echo "  make clean         - Remove build artifacts"
+	@echo ""
+	@echo "Repository setup (requires gh CLI and admin access):"
+	@echo "  make setup                   - Run all repo setup targets"
+	@echo "  make setup-repo              - Disable wiki"
+	@echo "  make setup-branch-protection - Apply branch protection to main"
 	@echo ""
 
 # Fetch and tidy dependencies
@@ -144,3 +149,17 @@ clean:
 	rm -f coverage.out coverage.html
 	rm -f *.test
 	@echo "Clean complete."
+
+# Repository setup targets (require gh CLI and admin access)
+setup: setup-repo setup-branch-protection
+
+setup-repo:
+	@echo "Configuring repository settings..."
+	gh repo edit --delete-branch-on-merge --enable-wiki=false
+	@echo "Repository settings applied."
+
+setup-branch-protection:
+	@echo "Applying branch protection to main..."
+	gh api -X PUT repos/{owner}/{repo}/branches/main/protection \
+		--input .github/branch-protection.json
+	@echo "Branch protection applied."
