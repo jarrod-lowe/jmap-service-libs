@@ -162,4 +162,5 @@ setup-branch-protection:
 	@echo "Applying branch protection to main..."
 	gh api -X PUT repos/{owner}/{repo}/branches/main/protection \
 		--input .github/branch-protection.json
+	gh api -X POST repos/{owner}/{repo}/branches/main/protection/required_signatures
 	@echo "Branch protection applied."
