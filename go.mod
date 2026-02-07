@@ -1,8 +1,6 @@
 module github.com/jarrod-lowe/jmap-service-libs
 
-go 1.24.0
-
-toolchain go1.24.6
+go 1.24.6
 
 require (
 	github.com/aws/aws-lambda-go v1.52.0

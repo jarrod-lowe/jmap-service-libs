@@ -109,7 +109,7 @@ license-check:
 		exit 1; \
 	fi; \
 	echo "Checking dependency licenses..."; \
-	go-licenses check --ignore github.com/jarrod-lowe/jmap-service-libs ./... 2>&1
+	GOTOOLCHAIN=local go-licenses check --ignore github.com/jarrod-lowe/jmap-service-libs ./... 2>&1
 
 # Detect breaking API changes vs last tag
 apidiff:
