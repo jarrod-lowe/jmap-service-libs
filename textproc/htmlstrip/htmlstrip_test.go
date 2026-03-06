@@ -123,13 +123,13 @@ func TestNextEOFThenNext(t *testing.T) {
 	}
 
 	// Second call should return EOF
-	result, err = p.Next()
+	_, err = p.Next()
 	if err != io.EOF {
 		t.Fatalf("expected io.EOF on second Next(), got %v", err)
 	}
 
 	// Third call should also return EOF
-	result, err = p.Next()
+	_, err = p.Next()
 	if err != io.EOF {
 		t.Fatalf("expected io.EOF on third Next(), got %v", err)
 	}
