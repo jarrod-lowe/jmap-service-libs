@@ -40,7 +40,7 @@ func TestNextPassesThrough(t *testing.T) {
 		t.Errorf("expected 'third', got '%s'", string(result))
 	}
 
-	result, err = p.Next()
+	_, err = p.Next()
 	if err != io.EOF {
 		t.Errorf("expected io.EOF, got %v", err)
 	}

@@ -41,7 +41,7 @@ func TestNextReturnsChunks(t *testing.T) {
 	}
 
 	// Fourth call should return EOF
-	result, err = p.Next()
+	_, err = p.Next()
 	if err != io.EOF {
 		t.Errorf("expected io.EOF, got %v", err)
 	}

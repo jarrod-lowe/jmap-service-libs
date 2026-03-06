@@ -7,8 +7,7 @@ import (
 func TestChunkType(t *testing.T) {
 	// Chunk is a type alias for []byte
 	// This test verifies Chunk can be created and used
-	var c Chunk
-	c = []byte("test data")
+	c := Chunk([]byte("test data"))
 
 	if len(c) != 9 {
 		t.Errorf("expected Chunk length 9, got %d", len(c))
@@ -22,8 +21,7 @@ func TestChunkType(t *testing.T) {
 func TestChunkSliceType(t *testing.T) {
 	// ChunkSlice is a slice of Chunks
 	// This test verifies ChunkSlice can be created and used
-	var cs ChunkSlice
-	cs = ChunkSlice{
+	cs := ChunkSlice{
 		Chunk("first"),
 		Chunk("second"),
 		Chunk("third"),

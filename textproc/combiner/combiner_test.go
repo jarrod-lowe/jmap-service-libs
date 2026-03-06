@@ -49,7 +49,7 @@ func TestNextWrapsChunks(t *testing.T) {
 		t.Errorf("expected 'third', got '%s'", string(result[0]))
 	}
 
-	result, err = p.Next()
+	_, err = p.Next()
 	if err != io.EOF {
 		t.Errorf("expected io.EOF, got %v", err)
 	}

@@ -7,9 +7,8 @@ import (
 
 // testBytesProcessor implements BytesProcessor for testing
 type testBytesProcessor struct {
-	data   [][]byte
-	index  int
-	closed bool
+	data  [][]byte
+	index int
 }
 
 func newTestBytesProcessor(data [][]byte) *testBytesProcessor {
@@ -33,10 +32,6 @@ func TestBytesProcessorInterface(t *testing.T) {
 	}
 
 	var p BytesProcessor = newTestBytesProcessor(data)
-
-	if p == nil {
-		t.Fatal("expected processor to be non-nil")
-	}
 
 	// First Next() call
 	result, err := p.Next()
@@ -94,10 +89,6 @@ func TestChunkProcessorInterface(t *testing.T) {
 
 	var p ChunkProcessor = newTestChunkProcessor(chunks)
 
-	if p == nil {
-		t.Fatal("expected processor to be non-nil")
-	}
-
 	// First Next() call
 	result, err := p.Next()
 	if err != nil {
@@ -153,10 +144,6 @@ func TestChunkCombinerInterface(t *testing.T) {
 	}
 
 	var c ChunkCombiner = newTestChunkCombiner(slices)
-
-	if c == nil {
-		t.Fatal("expected combiner to be non-nil")
-	}
 
 	// First Next() call
 	result, err := c.Next()
