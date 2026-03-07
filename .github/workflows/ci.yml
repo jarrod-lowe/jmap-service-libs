@@ -76,6 +76,20 @@ jobs:
       - name: Run tests with race detector
         run: make test-race
 
+  test-func:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Run functional tests
+        run: make test-func
+
   fuzz:
     runs-on: ubuntu-latest
     steps:
@@ -161,7 +175,7 @@ jobs:
 
   tag:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [fmt-check, mod-check, test, test-race, fuzz, lint, license-check, apidiff, vulncheck]
+    needs: [fmt-check, mod-check, test, test-race, test-func, fuzz, lint, license-check, apidiff, vulncheck]
     runs-on: ubuntu-latest
     concurrency:
       group: auto-tag

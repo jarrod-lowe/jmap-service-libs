@@ -1,0 +1,1 @@
+This is UTF-8 text that will be tested with the encoding options. The meta.json can specify charset and transfer encoding to test conversion features.

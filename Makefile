@@ -1,4 +1,4 @@
-.PHONY: help all-tests deps test test-race lint fmt fmt-check fuzz vulncheck mod-check license-check apidiff clean setup setup-repo setup-branch-protection
+.PHONY: help all-tests deps test test-race test-func lint fmt fmt-check fuzz vulncheck mod-check license-check apidiff clean setup setup-repo setup-branch-protection
 
 FUZZ_TIME ?= 30s
 
@@ -6,10 +6,12 @@ help:
 	@echo "jmap-service-libs - Shared Go libraries"
 	@echo ""
 	@echo "Available targets:"
-	@echo "  make all-tests     - Run full validation suite (tests, race, fuzz, lint, checks)"
+	@echo "  make all-tests     - Run full validation suite (tests, race, fuzz, lint, checks, func)"
 	@echo "  make deps          - Fetch dependencies (go mod tidy)"
 	@echo "  make test          - Run tests (go test -v ./...)"
 	@echo "  make test-race     - Run tests with race detector"
+	@echo "  make test-func     - Run functional tests"
+	@echo "  make update-func   - Update functional test golden files"
 	@echo "  make lint          - Run golangci-lint"
 	@echo "  make fmt           - Format Go code (go fmt ./...)"
 	@echo "  make fmt-check     - Check formatting (fails if not gofmt'd)"
@@ -27,7 +29,7 @@ help:
 	@echo ""
 
 # Run all validation checks (pre-commit suite)
-all-tests: test test-race fuzz lint mod-check vulncheck license-check apidiff fmt-check
+all-tests: test test-race test-func fuzz lint mod-check vulncheck license-check apidiff fmt-check
 	@echo "All validation checks passed!"
 
 # Fetch and tidy dependencies
@@ -44,6 +46,16 @@ test:
 test-race:
 	@echo "Running tests with race detector..."
 	go test -race ./...
+
+# Run functional tests
+test-func:
+	@echo "Running functional tests..."
+	go test -v ./textproc/chain -run TestFunctional
+
+# Update functional test golden files
+update-func:
+	@echo "Updating functional test golden files..."
+	go test -v ./textproc/chain -run TestFunctional -update
 
 # Run linter
 # PATH includes ~/go/bin for go-installed tools

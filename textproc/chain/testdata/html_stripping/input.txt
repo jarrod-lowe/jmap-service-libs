@@ -1,0 +1,14 @@
+<html>
+<head><title>Test Page</title></head>
+<body>
+<h1>Main Heading</h1>
+<p>This is a paragraph with <b>bold</b> and <i>italic</i> text.</p>
+<p>Another paragraph with <a href="#">a link</a> inside.</p>
+
+<script>alert('This should be removed');</script>
+<style>body { color: red; }</style>
+
+<h2>Subheading</h2>
+<p>Final paragraph after script and style tags.</p>
+</body>
+</html>

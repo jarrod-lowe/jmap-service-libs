@@ -39,9 +39,18 @@ func NewReaderConfig(r io.Reader, maxBytes, overlap int) (*Chain, error) {
 
 // NewReaderConfigWithByteLimit creates a new Chain with custom configuration including byte limit.
 func NewReaderConfigWithByteLimit(r io.Reader, maxBytes, overlap, byteLimit int) (*Chain, error) {
+	return NewReaderConfigWithEncoding(r, maxBytes, overlap, byteLimit, "", "")
+}
+
+// NewReaderConfigWithEncoding creates a new Chain with custom configuration including charset and transfer encoding.
+// The charset and transferEncoding parameters are passed through to the utf8clean processor.
+func NewReaderConfigWithEncoding(r io.Reader, maxBytes, overlap, byteLimit int, charset, transferEncoding string) (*Chain, error) {
 	// Build the pull-based pipeline
 	readerProc := reader.New(r)
-	utf8Proc, err := utf8clean.NewProcessor(readerProc)
+	utf8Proc, err := utf8clean.NewProcessor(readerProc,
+		utf8clean.WithCharset(charset),
+		utf8clean.WithTransferEncoding(transferEncoding),
+	)
 	if err != nil {
 		return nil, err
 	}
