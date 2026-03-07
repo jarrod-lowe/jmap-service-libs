@@ -340,3 +340,115 @@ func TestNewProcessorStripsHTML(t *testing.T) {
 		t.Fatalf("expected io.EOF on second Next(), got %v", err)
 	}
 }
+
+// Table cell separator tests - these will FAIL until tab separator is implemented
+
+func TestTableCellsWithSeparator(t *testing.T) {
+	// Test that table cells are separated by tabs
+	data := `<table><tr><td>Cell 1</td><td>Cell 2</td></tr></table>`
+	r := strings.NewReader(data)
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)), WithBlockSize(1024))
+
+	result, err := p.Next()
+	if err != nil && err != io.EOF {
+		t.Fatalf("expected no error or EOF, got %v", err)
+	}
+
+	expected := "Cell 1\tCell 2"
+	if result != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result)
+	}
+
+	_, err = p.Next()
+	if err != io.EOF {
+		t.Fatalf("expected io.EOF on second Next(), got %v", err)
+	}
+}
+
+func TestTableHeaderCellsWithSeparator(t *testing.T) {
+	// Test that table header cells are separated by tabs
+	data := `<table><tr><th>Header 1</th><th>Header 2</th></tr></table>`
+	r := strings.NewReader(data)
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)), WithBlockSize(1024))
+
+	result, err := p.Next()
+	if err != nil && err != io.EOF {
+		t.Fatalf("expected no error or EOF, got %v", err)
+	}
+
+	expected := "Header 1\tHeader 2"
+	if result != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result)
+	}
+
+	_, err = p.Next()
+	if err != io.EOF {
+		t.Fatalf("expected io.EOF on second Next(), got %v", err)
+	}
+}
+
+func TestMixedTableCells(t *testing.T) {
+	// Test mixed th and td cells
+	data := `<table><tr><th>Name</th><td>Value</td><th>Another</th></tr></table>`
+	r := strings.NewReader(data)
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)), WithBlockSize(1024))
+
+	result, err := p.Next()
+	if err != nil && err != io.EOF {
+		t.Fatalf("expected no error or EOF, got %v", err)
+	}
+
+	expected := "Name\tValue\tAnother"
+	if result != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result)
+	}
+
+	_, err = p.Next()
+	if err != io.EOF {
+		t.Fatalf("expected io.EOF on second Next(), got %v", err)
+	}
+}
+
+func TestEmptyTableCells(t *testing.T) {
+	// Test that empty cells still produce tab separators
+	data := `<table><tr><td>Cell 1</td><td></td><td>Cell 3</td></tr></table>`
+	r := strings.NewReader(data)
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)), WithBlockSize(1024))
+
+	result, err := p.Next()
+	if err != nil && err != io.EOF {
+		t.Fatalf("expected no error or EOF, got %v", err)
+	}
+
+	expected := "Cell 1\t\tCell 3"
+	if result != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result)
+	}
+
+	_, err = p.Next()
+	if err != io.EOF {
+		t.Fatalf("expected io.EOF on second Next(), got %v", err)
+	}
+}
+
+func TestNestedContentInCells(t *testing.T) {
+	// Test cells with nested content
+	data := `<table><tr><td><b>Bold</b> text</td><td><i>Italic</i></td></tr></table>`
+	r := strings.NewReader(data)
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)), WithBlockSize(1024))
+
+	result, err := p.Next()
+	if err != nil && err != io.EOF {
+		t.Fatalf("expected no error or EOF, got %v", err)
+	}
+
+	expected := "Bold text\tItalic"
+	if result != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result)
+	}
+
+	_, err = p.Next()
+	if err != io.EOF {
+		t.Fatalf("expected io.EOF on second Next(), got %v", err)
+	}
+}

@@ -10,5 +10,43 @@
 
 <h2>Subheading</h2>
 <p>Final paragraph after script and style tags.</p>
+
+<table>
+  <tr><td>Cell 1</td><td>Cell 2</td></tr>
+  <tr><td>Cell 3</td><td>Cell 4</td></tr>
+</table>
+
+<div style="color: red;" data-test="value" id="mydiv">This div has inline styles and attributes.</div>
+
+<span class="highlight" data-id="123">This span has classes and data attributes</span> <span>with extra text.</span>
+
+<ul>
+  <li>First list item</li>
+  <li>Second list item</li>
+</ul>
+
+<ol>
+  <li>Ordered item one</li>
+  <li>Ordered item two</li>
+</ol>
+
+<h3>Header 3</h3>
+<h4>Header 4</h4>
+<h5>Header 5</h5>
+<h6>Header 6</h6>
+
+<img src="image.jpg" alt="This is an image description">
+<img src="noalt.jpg">
+
+<br/>
+<hr/>
+
+<form>
+  <input type="text" value="default value">
+  <button>Submit</button>
+</form>
+
+<header>This is a header</header>
+<footer>This is a footer</footer>
 </body>
 </html>
