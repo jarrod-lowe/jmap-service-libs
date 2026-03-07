@@ -15,8 +15,9 @@ import (
 
 // Default configuration values
 const (
-	DefaultMaxBytes = 100000
-	DefaultOverlap  = 2
+	DefaultMaxBytes  = 100000
+	DefaultOverlap   = 2
+	DefaultByteLimit = 4000
 )
 
 // Chain composes text processors with lazy evaluation.
@@ -33,6 +34,11 @@ func NewReader(r io.Reader) (*Chain, error) {
 
 // NewReaderConfig creates a new Chain with custom configuration.
 func NewReaderConfig(r io.Reader, maxBytes, overlap int) (*Chain, error) {
+	return NewReaderConfigWithByteLimit(r, maxBytes, overlap, DefaultByteLimit)
+}
+
+// NewReaderConfigWithByteLimit creates a new Chain with custom configuration including byte limit.
+func NewReaderConfigWithByteLimit(r io.Reader, maxBytes, overlap, byteLimit int) (*Chain, error) {
 	// Build the pull-based pipeline
 	readerProc := reader.New(r)
 	utf8Proc, err := utf8clean.NewProcessor(readerProc)
@@ -43,7 +49,7 @@ func NewReaderConfig(r io.Reader, maxBytes, overlap int) (*Chain, error) {
 	eliderProc := elider.NewProcessor(htmlProc)
 	chunkerProc := chunker.NewProcessor(eliderProc)
 	splitterProc := splitter.NewProcessor(chunkerProc, maxBytes)
-	combinerProc := combiner.NewProcessor(splitterProc, overlap)
+	combinerProc := combiner.NewProcessor(splitterProc, combiner.WithByteLimit(byteLimit), combiner.WithOverlap(overlap))
 
 	return &Chain{combiner: combinerProc}, nil
 }
