@@ -129,7 +129,7 @@ func loadTestCaseMetadata(caseDir string) (*testCaseMetadata, error) {
 
 // runChain executes the chain pipeline and collects all outputs
 func runChain(r io.Reader, charset, transferEncoding string) ([]textproc.ChunkSlice, error) {
-	chain, err := NewReaderConfigWithEncoding(r, DefaultMaxBytes, DefaultOverlap, DefaultByteLimit, charset, transferEncoding)
+	chain, err := NewReaderConfigWithEncoding(r, DefaultMaxBytes, DefaultOverlap, DefaultCharLimit, charset, transferEncoding)
 	if err != nil {
 		return nil, err
 	}

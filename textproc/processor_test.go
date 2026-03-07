@@ -3,6 +3,7 @@ package textproc
 import (
 	"io"
 	"testing"
+	"unicode/utf8"
 )
 
 // testBytesProcessor implements BytesProcessor for testing
@@ -73,7 +74,7 @@ func newTestChunkProcessor(chunks []Chunk) *testChunkProcessor {
 
 func (t *testChunkProcessor) Next() (Chunk, error) {
 	if t.index >= len(t.chunks) {
-		return nil, io.EOF
+		return "", io.EOF
 	}
 	result := t.chunks[t.index]
 	t.index++
@@ -112,8 +113,8 @@ func TestChunkProcessorInterface(t *testing.T) {
 	if err != io.EOF {
 		t.Fatalf("expected io.EOF, got %v", err)
 	}
-	if result != nil {
-		t.Errorf("expected nil result with EOF, got %v", result)
+	if result != "" {
+		t.Errorf("expected empty result with EOF, got '%s'", result)
 	}
 }
 
@@ -171,8 +172,143 @@ func TestChunkCombinerInterface(t *testing.T) {
 	if err != io.EOF {
 		t.Fatalf("expected io.EOF, got %v", err)
 	}
-	if result != nil {
-		t.Errorf("expected nil result with EOF, got %v", result)
+	if len(result) != 0 {
+		t.Errorf("expected empty result with EOF, got %v", result)
+	}
+}
+
+// testStringProcessor implements StringProcessor for testing
+type testStringProcessor struct {
+	data  []string
+	index int
+}
+
+func newTestStringProcessor(data []string) *testStringProcessor {
+	return &testStringProcessor{data: data, index: 0}
+}
+
+func (t *testStringProcessor) Next() (string, error) {
+	if t.index >= len(t.data) {
+		return "", io.EOF
+	}
+	result := t.data[t.index]
+	t.index++
+	return result, nil
+}
+
+func TestStringProcessorInterface(t *testing.T) {
+	// Test that a type implementing Next() (string, error) satisfies StringProcessor
+	data := []string{
+		"first block",
+		"second block",
+	}
+
+	var p StringProcessor = newTestStringProcessor(data)
+
+	// First Next() call
+	result, err := p.Next()
+	if err != nil {
+		t.Fatalf("expected no error on first Next(), got %v", err)
+	}
+	if result != "first block" {
+		t.Errorf("expected 'first block', got '%s'", result)
+	}
+
+	// Second Next() call
+	result, err = p.Next()
+	if err != nil {
+		t.Fatalf("expected no error on second Next(), got %v", err)
+	}
+	if result != "second block" {
+		t.Errorf("expected 'second block', got '%s'", result)
+	}
+
+	// Third call should return EOF
+	_, err = p.Next()
+	if err != io.EOF {
+		t.Fatalf("expected io.EOF, got %v", err)
+	}
+	// StringProcessor returns empty string on EOF, not nil
+}
+
+func TestBytesToStringAdapter(t *testing.T) {
+	// Test that BytesToStringAdapter converts BytesProcessor to StringProcessor
+	byteData := [][]byte{
+		[]byte("first block"),
+		[]byte("second block"),
+	}
+
+	src := newTestBytesProcessor(byteData)
+	adapter := NewBytesToStringAdapter(src)
+
+	// Verify adapter implements StringProcessor
+	var sp StringProcessor = adapter
+
+	// First Next() call - should convert []byte to string
+	result, err := sp.Next()
+	if err != nil {
+		t.Fatalf("expected no error on first Next(), got %v", err)
+	}
+	if result != "first block" {
+		t.Errorf("expected 'first block', got '%s'", result)
+	}
+
+	// Second Next() call
+	result, err = sp.Next()
+	if err != nil {
+		t.Fatalf("expected no error on second Next(), got %v", err)
+	}
+	if result != "second block" {
+		t.Errorf("expected 'second block', got '%s'", result)
+	}
+
+	// Third call should return EOF
+	_, err = sp.Next()
+	if err != io.EOF {
+		t.Fatalf("expected io.EOF, got %v", err)
+	}
+	// Adapter returns empty string on EOF, not nil
+}
+
+func TestBytesToStringAdapterWithUTF8(t *testing.T) {
+	// Test that adapter handles multi-byte UTF-8 characters correctly
+	byteData := [][]byte{
+		[]byte("Hello 世界"), // Chinese characters are 3 bytes each
+		[]byte("🎉 emoji"),  // Emoji is 4 bytes
+	}
+
+	src := newTestBytesProcessor(byteData)
+	adapter := NewBytesToStringAdapter(src)
+
+	// First block
+	result, err := adapter.Next()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if result != "Hello 世界" {
+		t.Errorf("expected 'Hello 世界', got '%s'", result)
+	}
+	// Verify UTF-8 correctness by checking character count
+	if utf8.RuneCountInString(result) != 8 { // H,e,l,l,o, ,世,界
+		t.Errorf("expected 8 runes, got %d", utf8.RuneCountInString(result))
+	}
+
+	// Second block
+	result, err = adapter.Next()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if result != "🎉 emoji" {
+		t.Errorf("expected '🎉 emoji', got '%s'", result)
+	}
+	if utf8.RuneCountInString(result) != 7 { // 🎉, ,e,m,o,j,i
+		t.Errorf("expected 7 runes, got %d", utf8.RuneCountInString(result))
+	}
+
+	// Third call returns EOF
+	_, err = adapter.Next()
+	if err != io.EOF {
+		t.Fatalf("expected io.EOF, got %v", err)
 	}
 }
 
@@ -184,10 +320,10 @@ func TestProcessorIntegration(t *testing.T) {
 	byteData := [][]byte{[]byte("hello"), []byte("world")}
 	bp := newTestBytesProcessor(byteData)
 
-	// Convert []byte to Chunk for ChunkProcessor
+	// Convert []byte to Chunk (string) for ChunkProcessor
 	chunks := make([]Chunk, len(byteData))
 	for i, d := range byteData {
-		chunks[i] = Chunk(d)
+		chunks[i] = Chunk(string(d))
 	}
 	cp := newTestChunkProcessor(chunks)
 

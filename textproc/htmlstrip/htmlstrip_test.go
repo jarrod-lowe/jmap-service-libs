@@ -5,13 +5,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jarrod-lowe/jmap-service-libs/textproc"
 	"github.com/jarrod-lowe/jmap-service-libs/textproc/reader"
 )
 
 func TestNewProcessor(t *testing.T) {
 	// Test that NewProcessor creates a processor with default block size
 	r := strings.NewReader("test data")
-	p := NewProcessor(reader.New(r))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)))
 
 	if p == nil {
 		t.Fatal("expected processor to be non-nil")
@@ -26,7 +27,7 @@ func TestNewProcessor(t *testing.T) {
 func TestNewProcessorWithOptions(t *testing.T) {
 	// Test that NewProcessor with options sets custom block size
 	r := strings.NewReader("test data")
-	p := NewProcessor(reader.New(r), WithBlockSize(512))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)), WithBlockSize(512))
 
 	if p == nil {
 		t.Fatal("expected processor to be non-nil")
@@ -41,44 +42,44 @@ func TestNextSingleBlock(t *testing.T) {
 	// Test reading plain text (passthrough)
 	data := "hello world"
 	r := strings.NewReader(data)
-	p := NewProcessor(reader.New(r), WithBlockSize(1024))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)), WithBlockSize(1024))
 
 	result, err := p.Next()
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if string(result) != data {
-		t.Errorf("expected '%s', got '%s'", data, string(result))
+	if result != data {
+		t.Errorf("expected '%s', got '%s'", data, result)
 	}
 }
 
 func TestNextEmptyReader(t *testing.T) {
 	// Test reading from an empty reader
 	r := strings.NewReader("")
-	p := NewProcessor(reader.New(r))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)))
 
 	result, err := p.Next()
 	if err != io.EOF {
 		t.Fatalf("expected io.EOF immediately, got %v", err)
 	}
-	if result != nil {
-		t.Errorf("expected nil result with EOF, got %v", result)
+	if result != "" {
+		t.Errorf("expected empty result with EOF, got %v", result)
 	}
 }
 
 func TestNextEOFThenNext(t *testing.T) {
 	// Test that Next continues to return EOF after first EOF
 	r := strings.NewReader("test")
-	p := NewProcessor(reader.New(r), WithBlockSize(10))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)), WithBlockSize(10))
 
 	// First call should succeed
 	result, err := p.Next()
 	if err != nil {
 		t.Fatalf("expected no error on first Next(), got %v", err)
 	}
-	if string(result) != "test" {
-		t.Errorf("expected 'test', got '%s'", string(result))
+	if result != "test" {
+		t.Errorf("expected 'test', got '%s'", result)
 	}
 
 	// Second call should return EOF
@@ -98,15 +99,15 @@ func TestStripBasicHTML(t *testing.T) {
 	// Test basic HTML stripping: <p>Hello <b>world</b></p> should produce "Hello world"
 	data := `<p>Hello <b>world</b></p>`
 	r := strings.NewReader(data)
-	p := NewProcessor(reader.New(r))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
 		t.Fatalf("expected no error or EOF, got %v", err)
 	}
 
-	if string(result) != "Hello world" {
-		t.Errorf("expected 'Hello world', got '%s'", string(result))
+	if result != "Hello world" {
+		t.Errorf("expected 'Hello world', got '%s'", result)
 	}
 
 	// Verify we've consumed all input
@@ -120,15 +121,15 @@ func TestImgAltText(t *testing.T) {
 	// Test that img alt text is preserved: <img src="x.jpg" alt="Photo"> should produce "Photo"
 	data := `<img src="x.jpg" alt="Photo">`
 	r := strings.NewReader(data)
-	p := NewProcessor(reader.New(r))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
 		t.Fatalf("expected no error or EOF, got %v", err)
 	}
 
-	if string(result) != "Photo" {
-		t.Errorf("expected 'Photo', got '%s'", string(result))
+	if result != "Photo" {
+		t.Errorf("expected 'Photo', got '%s'", result)
 	}
 
 	// Verify we've consumed all input
@@ -143,7 +144,7 @@ func TestScriptStyleRemoval(t *testing.T) {
 	// Note: <p> tags are block elements that insert newlines
 	data := `<p>Hello</p><script>alert('bad');</script><p>World</p>`
 	r := strings.NewReader(data)
-	p := NewProcessor(reader.New(r))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
@@ -151,8 +152,8 @@ func TestScriptStyleRemoval(t *testing.T) {
 	}
 
 	expected := "Hello\nWorld"
-	if string(result) != expected {
-		t.Errorf("expected '%s', got '%s'", expected, string(result))
+	if result != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result)
 	}
 
 	// Verify we've consumed all input
@@ -166,7 +167,7 @@ func TestBlockElementSpacing(t *testing.T) {
 	// Test that block elements insert newlines: <p>Para1</p><p>Para2</p> should produce "Para1\nPara2"
 	data := `<p>Para1</p><p>Para2</p>`
 	r := strings.NewReader(data)
-	p := NewProcessor(reader.New(r))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
@@ -174,8 +175,8 @@ func TestBlockElementSpacing(t *testing.T) {
 	}
 
 	expected := "Para1\nPara2"
-	if string(result) != expected {
-		t.Errorf("expected '%s', got '%s'", expected, string(result))
+	if result != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result)
 	}
 
 	// Verify we've consumed all input
@@ -189,15 +190,15 @@ func TestLinkHandling(t *testing.T) {
 	// Test that link text is extracted but href is ignored: <a href="url">text</a> should produce "text"
 	data := `<a href="https://example.com">Click here</a>`
 	r := strings.NewReader(data)
-	p := NewProcessor(reader.New(r))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
 		t.Fatalf("expected no error or EOF, got %v", err)
 	}
 
-	if string(result) != "Click here" {
-		t.Errorf("expected 'Click here', got '%s'", string(result))
+	if result != "Click here" {
+		t.Errorf("expected 'Click here', got '%s'", result)
 	}
 
 	_, err = p.Next()
@@ -210,15 +211,15 @@ func TestMalformedHTML(t *testing.T) {
 	// Test that malformed HTML still produces output: <b>unclosed should still work
 	data := `<b>unclosed text`
 	r := strings.NewReader(data)
-	p := NewProcessor(reader.New(r))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
 		t.Fatalf("expected no error or EOF, got %v", err)
 	}
 
-	if string(result) != "unclosed text" {
-		t.Errorf("expected 'unclosed text', got '%s'", string(result))
+	if result != "unclosed text" {
+		t.Errorf("expected 'unclosed text', got '%s'", result)
 	}
 
 	_, err = p.Next()
@@ -231,15 +232,15 @@ func TestMixedContent(t *testing.T) {
 	// Test mixed content: "Hello <p>World</p>" should produce "Hello World"
 	data := `Hello <p>World</p>`
 	r := strings.NewReader(data)
-	p := NewProcessor(reader.New(r))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
 		t.Fatalf("expected no error or EOF, got %v", err)
 	}
 
-	if string(result) != "Hello World" {
-		t.Errorf("expected 'Hello World', got '%s'", string(result))
+	if result != "Hello World" {
+		t.Errorf("expected 'Hello World', got '%s'", result)
 	}
 
 	_, err = p.Next()
@@ -252,15 +253,15 @@ func TestAngleBracketsNotTags(t *testing.T) {
 	// Test that angle brackets that aren't tags are preserved: "Price: $5 < $10"
 	data := `Price: $5 < $10`
 	r := strings.NewReader(data)
-	p := NewProcessor(reader.New(r))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
 		t.Fatalf("expected no error or EOF, got %v", err)
 	}
 
-	if string(result) != "Price: $5 < $10" {
-		t.Errorf("expected 'Price: $5 < $10', got '%s'", string(result))
+	if result != "Price: $5 < $10" {
+		t.Errorf("expected 'Price: $5 < $10', got '%s'", result)
 	}
 
 	_, err = p.Next()
@@ -274,7 +275,7 @@ func TestPartialTags(t *testing.T) {
 	// The HTML tokenizer treats "<b text" as an incomplete tag
 	data := `some <b text`
 	r := strings.NewReader(data)
-	p := NewProcessor(reader.New(r))
+	p := NewProcessor(textproc.NewBytesToStringAdapter(reader.New(r)))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
@@ -294,11 +295,25 @@ func TestPartialTags(t *testing.T) {
 	}
 }
 
-// NEW tests for pull-based composition with BytesProcessor
+// NEW tests for pull-based composition with StringProcessor
+
+type mockStringSource struct {
+	blocks []string
+	index  int
+}
+
+func (m *mockStringSource) Next() (string, error) {
+	if m.index >= len(m.blocks) {
+		return "", io.EOF
+	}
+	result := m.blocks[m.index]
+	m.index++
+	return result, nil
+}
 
 func TestNewProcessorCreatesProcessor(t *testing.T) {
-	// Test that NewProcessor creates a processor with BytesProcessor source
-	src := &mockSource{blocks: [][]byte{[]byte("test")}}
+	// Test that NewProcessor creates a processor with StringProcessor source
+	src := &mockStringSource{blocks: []string{"test"}}
 	p := NewProcessor(src)
 
 	if p == nil {
@@ -308,7 +323,7 @@ func TestNewProcessorCreatesProcessor(t *testing.T) {
 
 func TestNewProcessorStripsHTML(t *testing.T) {
 	// Test that NewProcessor strips HTML from pulled data
-	src := &mockSource{blocks: [][]byte{[]byte("<p>Hello <b>world</b></p>")}}
+	src := &mockStringSource{blocks: []string{"<p>Hello <b>world</b></p>"}}
 	p := NewProcessor(src)
 
 	result, err := p.Next()
@@ -316,26 +331,12 @@ func TestNewProcessorStripsHTML(t *testing.T) {
 		t.Fatalf("expected no error or EOF, got %v", err)
 	}
 
-	if string(result) != "Hello world" {
-		t.Errorf("expected 'Hello world', got '%s'", string(result))
+	if result != "Hello world" {
+		t.Errorf("expected 'Hello world', got '%s'", result)
 	}
 
 	_, err = p.Next()
 	if err != io.EOF {
 		t.Fatalf("expected io.EOF on second Next(), got %v", err)
 	}
-}
-
-type mockSource struct {
-	blocks [][]byte
-	index  int
-}
-
-func (m *mockSource) Next() ([]byte, error) {
-	if m.index >= len(m.blocks) {
-		return nil, io.EOF
-	}
-	result := m.blocks[m.index]
-	m.index++
-	return result, nil
 }
