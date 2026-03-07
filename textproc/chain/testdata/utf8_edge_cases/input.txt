@@ -1,0 +1,12 @@
+UTF-8 edge case testing:
+- Emoji: 😀 😎 🚀
+- Accents: café résumé naïve
+- Symbols: © ™ € £ ¥
+- Math: ∑ ∏ ∫ ∞
+- Chinese: 你好世界
+- Japanese: こんにちは
+- Arabic: مرحبا بالعالم
+- Hebrew: שלום עולם
+- Right-to-left: עברית ו-Arabic
+
+Boundary testing for multi-byte sequences.
