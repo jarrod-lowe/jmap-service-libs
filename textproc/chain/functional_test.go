@@ -1,7 +1,6 @@
 package chain
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -158,12 +157,12 @@ func encodeResults(results []textproc.ChunkSlice, err error) ([]byte, error) {
 		return json.MarshalIndent(result, "", "  ")
 	}
 
-	// Success case: encode each ChunkSlice as array of base64-encoded byte arrays
+	// Success case: encode each ChunkSlice as array of strings
 	encoded := make([][]string, 0, len(results))
 	for _, slice := range results {
 		encodedSlice := make([]string, 0, len(slice))
 		for _, chunk := range slice {
-			encodedSlice = append(encodedSlice, base64.StdEncoding.EncodeToString([]byte(chunk)))
+			encodedSlice = append(encodedSlice, string(chunk))
 		}
 		encoded = append(encoded, encodedSlice)
 	}
