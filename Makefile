@@ -1,4 +1,4 @@
-.PHONY: help deps test test-race lint fmt fmt-check fuzz vulncheck mod-check license-check apidiff clean setup setup-repo setup-branch-protection
+.PHONY: help all-tests deps test test-race lint fmt fmt-check fuzz vulncheck mod-check license-check apidiff clean setup setup-repo setup-branch-protection
 
 FUZZ_TIME ?= 30s
 
@@ -6,6 +6,7 @@ help:
 	@echo "jmap-service-libs - Shared Go libraries"
 	@echo ""
 	@echo "Available targets:"
+	@echo "  make all-tests     - Run full validation suite (tests, race, fuzz, lint, checks)"
 	@echo "  make deps          - Fetch dependencies (go mod tidy)"
 	@echo "  make test          - Run tests (go test -v ./...)"
 	@echo "  make test-race     - Run tests with race detector"
@@ -24,6 +25,10 @@ help:
 	@echo "  make setup-repo              - Configure repo settings and Actions permissions"
 	@echo "  make setup-branch-protection - Apply branch protection to main"
 	@echo ""
+
+# Run all validation checks (pre-commit suite)
+all-tests: test test-race fuzz lint mod-check vulncheck license-check apidiff
+	@echo "All validation checks passed!"
 
 # Fetch and tidy dependencies
 deps:

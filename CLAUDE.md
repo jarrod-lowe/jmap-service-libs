@@ -8,6 +8,18 @@ This is a shared Go library (`github.com/jarrod-lowe/jmap-service-libs`) for the
 
 ## Build Commands
 
+### Pre-commit Validation
+
+Before committing any code, you MUST run the full validation suite:
+
+```bash
+make all-tests
+```
+
+This runs tests, race detector, fuzz tests, linting, and all safety checks. Use the individual targets below for quick iteration during development.
+
+### Individual Commands
+
 ```bash
 make deps     # Tidy dependencies (go mod tidy)
 make test     # Run all tests (go test -v ./...)
