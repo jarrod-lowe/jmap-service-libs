@@ -6,6 +6,7 @@ import (
 )
 
 func TestPluginInvocationRequest_JSONUnmarshal(t *testing.T) {
+	t.Parallel()
 	jsonData := `{
 		"requestId": "apigw-request-id",
 		"callIndex": 0,
@@ -68,6 +69,7 @@ func TestPluginInvocationRequest_JSONUnmarshal(t *testing.T) {
 }
 
 func TestPluginInvocationRequest_JSONMarshal(t *testing.T) {
+	t.Parallel()
 	req := PluginInvocationRequest{
 		RequestID: "req-123",
 		CallIndex: 1,
@@ -118,6 +120,7 @@ func TestPluginInvocationRequest_JSONMarshal(t *testing.T) {
 }
 
 func TestPluginInvocationRequest_URLFields_JSONUnmarshal(t *testing.T) {
+	t.Parallel()
 	jsonData := `{
 		"requestId": "req-1",
 		"callIndex": 0,
@@ -144,6 +147,7 @@ func TestPluginInvocationRequest_URLFields_JSONUnmarshal(t *testing.T) {
 }
 
 func TestPluginInvocationRequest_URLFields_JSONMarshal(t *testing.T) {
+	t.Parallel()
 	req := PluginInvocationRequest{
 		RequestID: "req-1",
 		CallIndex: 0,
@@ -175,6 +179,7 @@ func TestPluginInvocationRequest_URLFields_JSONMarshal(t *testing.T) {
 }
 
 func TestMethodResponse_JSONMarshal(t *testing.T) {
+	t.Parallel()
 	resp := MethodResponse{
 		Name: "Email/get",
 		Args: Args{
@@ -213,6 +218,7 @@ func TestMethodResponse_JSONMarshal(t *testing.T) {
 }
 
 func TestMethodResponse_ErrorResponse(t *testing.T) {
+	t.Parallel()
 	// Test error response format
 	resp := MethodResponse{
 		Name: "error",
@@ -251,6 +257,7 @@ func TestMethodResponse_ErrorResponse(t *testing.T) {
 }
 
 func TestPluginInvocationResponse_JSONMarshal(t *testing.T) {
+	t.Parallel()
 	resp := PluginInvocationResponse{
 		MethodResponse: MethodResponse{
 			Name: "Email/get",
@@ -287,6 +294,7 @@ func TestPluginInvocationResponse_JSONMarshal(t *testing.T) {
 }
 
 func TestPluginInvocationResponse_JSONUnmarshal(t *testing.T) {
+	t.Parallel()
 	jsonData := `{
 		"methodResponse": {
 			"name": "Email/get",

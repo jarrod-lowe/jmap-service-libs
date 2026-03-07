@@ -9,6 +9,7 @@ import (
 )
 
 func TestIsConditionalCheckFailed(t *testing.T) {
+	t.Parallel()
 	t.Run("returns true for ConditionalCheckFailedException", func(t *testing.T) {
 		err := &types.ConditionalCheckFailedException{}
 		if !dbclient.IsConditionalCheckFailed(err) {
@@ -39,6 +40,7 @@ func TestIsConditionalCheckFailed(t *testing.T) {
 }
 
 func TestIsTransactionCanceled(t *testing.T) {
+	t.Parallel()
 	t.Run("returns true for TransactionCanceledException", func(t *testing.T) {
 		err := &types.TransactionCanceledException{}
 		if !dbclient.IsTransactionCanceled(err) {
@@ -69,6 +71,7 @@ func TestIsTransactionCanceled(t *testing.T) {
 }
 
 func TestGetTransactionCancellationReasons(t *testing.T) {
+	t.Parallel()
 	t.Run("extracts reasons from TransactionCanceledException", func(t *testing.T) {
 		err := &types.TransactionCanceledException{
 			CancellationReasons: []types.CancellationReason{
@@ -124,6 +127,7 @@ func TestGetTransactionCancellationReasons(t *testing.T) {
 }
 
 func TestHasConditionalCheckFailure(t *testing.T) {
+	t.Parallel()
 	t.Run("returns true when CCF in reasons", func(t *testing.T) {
 		err := &types.TransactionCanceledException{
 			CancellationReasons: []types.CancellationReason{
@@ -163,6 +167,7 @@ func TestHasConditionalCheckFailure(t *testing.T) {
 }
 
 func TestGetConditionalCheckFailureIndex(t *testing.T) {
+	t.Parallel()
 	t.Run("returns index of first CCF", func(t *testing.T) {
 		err := &types.TransactionCanceledException{
 			CancellationReasons: []types.CancellationReason{

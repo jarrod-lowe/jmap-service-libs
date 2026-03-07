@@ -7,6 +7,7 @@ import (
 )
 
 func TestConstants(t *testing.T) {
+	t.Parallel()
 	t.Run("AttrPK", func(t *testing.T) {
 		if dbclient.AttrPK != "pk" {
 			t.Errorf("AttrPK = %q, want %q", dbclient.AttrPK, "pk")
@@ -39,6 +40,7 @@ func TestConstants(t *testing.T) {
 }
 
 func TestAccountPK(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		accountID string
 		want      string
@@ -58,6 +60,7 @@ func TestAccountPK(t *testing.T) {
 }
 
 func TestUserPK(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		userID string
 		want   string

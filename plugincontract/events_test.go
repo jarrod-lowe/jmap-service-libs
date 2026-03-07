@@ -6,6 +6,7 @@ import (
 )
 
 func TestEventPayload_JSONMarshal(t *testing.T) {
+	t.Parallel()
 	event := EventPayload{
 		EventType:  "account.created",
 		OccurredAt: "2025-01-20T10:30:00Z",
@@ -46,6 +47,7 @@ func TestEventPayload_JSONMarshal(t *testing.T) {
 }
 
 func TestEventPayload_JSONUnmarshal(t *testing.T) {
+	t.Parallel()
 	jsonData := `{
 		"eventType": "account.created",
 		"occurredAt": "2025-01-20T10:30:00Z",
@@ -81,6 +83,7 @@ func TestEventPayload_JSONUnmarshal(t *testing.T) {
 }
 
 func TestEventPayload_OmitEmptyData(t *testing.T) {
+	t.Parallel()
 	event := EventPayload{
 		EventType:  "account.deleted",
 		OccurredAt: "2025-01-20T11:00:00Z",
@@ -105,6 +108,7 @@ func TestEventPayload_OmitEmptyData(t *testing.T) {
 }
 
 func TestEventPayload_EmptyDataIsOmitted(t *testing.T) {
+	t.Parallel()
 	// Go's omitempty also omits empty maps, not just nil
 	event := EventPayload{
 		EventType:  "account.updated",
