@@ -28,19 +28,17 @@ type Chain struct {
 
 // NewReader creates a new Chain with an io.Reader as input.
 // It builds the entire processor pipeline for pull-based lazy evaluation.
-func NewReader(r io.Reader) *Chain {
+func NewReader(r io.Reader) (*Chain, error) {
 	return NewReaderConfig(r, DefaultChunkSize, DefaultMaxBytes, DefaultOverlap)
 }
 
 // NewReaderConfig creates a new Chain with custom configuration.
-func NewReaderConfig(r io.Reader, chunkSize, maxBytes, overlap int) *Chain {
+func NewReaderConfig(r io.Reader, chunkSize, maxBytes, overlap int) (*Chain, error) {
 	// Build the pull-based pipeline
 	readerProc := reader.New(r)
 	utf8Proc, err := utf8clean.NewProcessor(readerProc)
 	if err != nil {
-		// NewProcessor only returns error for invalid charset/encoding
-		// We're using defaults, so this should never happen
-		panic(err)
+		return nil, err
 	}
 	htmlProc := htmlstrip.NewProcessor(utf8Proc)
 	eliderProc := elider.NewProcessor(htmlProc)
@@ -50,7 +48,7 @@ func NewReaderConfig(r io.Reader, chunkSize, maxBytes, overlap int) *Chain {
 	splitterProc := splitter.NewProcessor(chunkerProc, maxBytes)
 	combinerProc := combiner.NewProcessor(splitterProc, overlap)
 
-	return &Chain{combiner: combinerProc}
+	return &Chain{combiner: combinerProc}, nil
 }
 
 // Next returns the next ChunkSlice from the chain.

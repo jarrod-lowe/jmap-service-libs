@@ -8,7 +8,10 @@ import (
 
 func TestNewReader(t *testing.T) {
 	r := strings.NewReader("test data")
-	c := NewReader(r)
+	c, err := NewReader(r)
+	if err != nil {
+		t.Fatalf("NewReader failed: %v", err)
+	}
 
 	if c == nil {
 		t.Fatal("expected Chain to be non-nil")
@@ -17,7 +20,10 @@ func TestNewReader(t *testing.T) {
 
 func TestNextReturnsChunkSlice(t *testing.T) {
 	r := strings.NewReader("test data")
-	c := NewReader(r)
+	c, err := NewReader(r)
+	if err != nil {
+		t.Fatalf("NewReader failed: %v", err)
+	}
 
 	result, err := c.Next()
 	if err != nil && err != io.EOF {
@@ -31,9 +37,12 @@ func TestNextReturnsChunkSlice(t *testing.T) {
 
 func TestNextEOF(t *testing.T) {
 	r := strings.NewReader("")
-	c := NewReader(r)
+	c, err := NewReader(r)
+	if err != nil {
+		t.Fatalf("NewReader failed: %v", err)
+	}
 
-	_, err := c.Next()
+	_, err = c.Next()
 	if err != io.EOF {
 		t.Errorf("expected io.EOF for empty reader, got %v", err)
 	}
@@ -43,7 +52,10 @@ func TestFullPipelineProcessesHTML(t *testing.T) {
 	// Test that the full pipeline strips HTML and returns chunks
 	html := `<p>Hello <b>world</b></p><p>This is a test</p>`
 	r := strings.NewReader(html)
-	c := NewReader(r)
+	c, err := NewReader(r)
+	if err != nil {
+		t.Fatalf("NewReader failed: %v", err)
+	}
 
 	result, err := c.Next()
 	if err != nil && err != io.EOF {
@@ -69,11 +81,14 @@ func TestNextMultipleCalls(t *testing.T) {
 	// Create a larger input to get multiple chunks
 	data := strings.Repeat("test ", 1000) // ~5000 bytes
 	r := strings.NewReader(data)
-	c := NewReaderConfig(r, 1000, 2000, 1)
+	c, err := NewReaderConfig(r, 1000, 2000, 1)
+	if err != nil {
+		t.Fatalf("NewReaderConfig failed: %v", err)
+	}
 
 	count := 0
 	for {
-		_, err := c.Next()
+		_, err = c.Next()
 		if err == io.EOF {
 			break
 		}
