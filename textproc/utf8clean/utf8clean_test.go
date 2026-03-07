@@ -107,3 +107,56 @@ func TestNextEmptyReader(t *testing.T) {
 		t.Errorf("expected nil result with EOF, got %v", result)
 	}
 }
+
+// NEW tests for pull-based composition with BytesProcessor
+
+func TestNewProcessorCreatesProcessor(t *testing.T) {
+	// Test that NewProcessor creates a processor with BytesProcessor source
+	src := &mockSource{blocks: [][]byte{[]byte("test")}}
+	p := NewProcessor(src)
+
+	if p == nil {
+		t.Fatal("expected Processor to be non-nil")
+	}
+}
+
+func TestNewProcessorPullsFromSource(t *testing.T) {
+	// Test that Next() pulls data from source BytesProcessor
+	src := &mockSource{blocks: [][]byte{[]byte("hello"), []byte("world")}}
+	p := NewProcessor(src)
+
+	result, err := p.Next()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if string(result) != "hello" {
+		t.Errorf("expected 'hello', got '%s'", string(result))
+	}
+
+	result, err = p.Next()
+	if err != nil {
+		t.Fatalf("expected no error on second call, got %v", err)
+	}
+	if string(result) != "world" {
+		t.Errorf("expected 'world', got '%s'", string(result))
+	}
+
+	_, err = p.Next()
+	if err != io.EOF {
+		t.Errorf("expected io.EOF, got %v", err)
+	}
+}
+
+type mockSource struct {
+	blocks [][]byte
+	index  int
+}
+
+func (m *mockSource) Next() ([]byte, error) {
+	if m.index >= len(m.blocks) {
+		return nil, io.EOF
+	}
+	result := m.blocks[m.index]
+	m.index++
+	return result, nil
+}

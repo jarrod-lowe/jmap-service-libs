@@ -1,4 +1,4 @@
-package elider
+package reader
 
 import (
 	"io"
@@ -6,11 +6,10 @@ import (
 	"github.com/jarrod-lowe/jmap-service-libs/textproc"
 )
 
-// Processor reads bytes from a source and returns them in blocks.
-// For the initial stub implementation, it passes data through unmodified.
+// Processor adapts an io.Reader to the BytesProcessor interface.
+// It reads data from the reader in blocks and returns them via Next().
 type Processor struct {
 	r         io.Reader
-	src       textproc.BytesProcessor
 	blockSize int
 }
 
@@ -25,11 +24,11 @@ func WithBlockSize(n int) Option {
 }
 
 // New creates a new Processor with the given reader and options.
-// The default block size is 1024 bytes.
+// The default block size is 4096 bytes.
 func New(r io.Reader, opts ...Option) *Processor {
 	p := &Processor{
 		r:         r,
-		blockSize: 1024,
+		blockSize: 4096,
 	}
 	for _, opt := range opts {
 		opt(p)
@@ -37,32 +36,14 @@ func New(r io.Reader, opts ...Option) *Processor {
 	return p
 }
 
-// NewProcessor creates a new Processor with the given BytesProcessor source.
-// This enables pull-based lazy evaluation.
-func NewProcessor(src textproc.BytesProcessor, opts ...Option) *Processor {
-	p := &Processor{
-		src:       src,
-		blockSize: 1024,
-	}
-	for _, opt := range opts {
-		opt(p)
-	}
-	return p
-}
-
-// Next reads the next block of data from the source.
+// Next reads the next block of data from the reader.
 // Returns io.EOF when all data has been consumed.
+// Implements textproc.BytesProcessor.
 func (p *Processor) Next() ([]byte, error) {
-	// Use pull-based source if available
-	if p.src != nil {
-		return p.src.Next()
-	}
-
-	// Fall back to io.Reader for backward compatibility
 	buf := make([]byte, p.blockSize)
 	n, err := io.ReadFull(p.r, buf)
 
-	// Handle end of file
+	// Handle end of file - no data at all
 	if err == io.EOF && n == 0 {
 		return nil, io.EOF
 	}

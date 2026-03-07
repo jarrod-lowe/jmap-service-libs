@@ -4,13 +4,15 @@ import (
 	"io"
 	"strings"
 
+	"github.com/jarrod-lowe/jmap-service-libs/textproc"
 	"golang.org/x/net/html"
 )
 
-// Processor reads bytes from an io.Reader and returns them in blocks
+// Processor reads bytes from a source and returns them in blocks
 // with HTML markup removed.
 type Processor struct {
 	r         io.Reader
+	src       textproc.BytesProcessor // NEW: pull-based source
 	blockSize int
 	tokenizer *html.Tokenizer
 	buf       strings.Builder
@@ -28,6 +30,31 @@ func WithBlockSize(n int) Option {
 	}
 }
 
+// processorReader adapts a BytesProcessor to an io.Reader for use with html.Tokenizer.
+type processorReader struct {
+	proc *Processor
+	buf  []byte
+	pos  int
+}
+
+// Read implements io.Reader by pulling from the BytesProcessor.
+func (pr *processorReader) Read(p []byte) (n int, err error) {
+	// If buffer is empty, pull more data
+	if pr.pos >= len(pr.buf) {
+		block, err := pr.proc.src.Next()
+		if err != nil {
+			return 0, err
+		}
+		pr.buf = block
+		pr.pos = 0
+	}
+
+	// Copy from buffer to p
+	n = copy(p, pr.buf[pr.pos:])
+	pr.pos += n
+	return n, nil
+}
+
 // New creates a new Processor with the given reader and options.
 // The default block size is 1024 bytes.
 func New(r io.Reader, opts ...Option) *Processor {
@@ -42,9 +69,32 @@ func New(r io.Reader, opts ...Option) *Processor {
 	return p
 }
 
-// Next reads the next block of data from the reader with HTML removed.
+// NewProcessor creates a new Processor with the given BytesProcessor source.
+// This enables pull-based lazy evaluation.
+func NewProcessor(src textproc.BytesProcessor, opts ...Option) *Processor {
+	p := &Processor{
+		src:       src,
+		blockSize: 1024,
+	}
+	for _, opt := range opts {
+		opt(p)
+	}
+	return p
+}
+
+// Next reads the next block of data from the source with HTML removed.
 // Returns io.EOF when all data has been consumed.
 func (p *Processor) Next() ([]byte, error) {
+	// Initialize tokenizer from pull-based source if needed
+	if p.tokenizer == nil && p.src != nil {
+		p.tokenizer = html.NewTokenizer(&processorReader{proc: p})
+	}
+
+	// For backward compatibility with io.Reader
+	if p.tokenizer == nil && p.r != nil {
+		p.tokenizer = html.NewTokenizer(p.r)
+	}
+
 	if p.done && p.buf.Len() == 0 {
 		return nil, io.EOF
 	}
