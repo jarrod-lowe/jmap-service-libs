@@ -27,7 +27,7 @@ help:
 	@echo ""
 
 # Run all validation checks (pre-commit suite)
-all-tests: test test-race fuzz lint mod-check vulncheck license-check apidiff
+all-tests: test test-race fuzz lint mod-check vulncheck license-check apidiff fmt-check
 	@echo "All validation checks passed!"
 
 # Fetch and tidy dependencies

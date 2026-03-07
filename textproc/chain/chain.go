@@ -14,15 +14,15 @@ import (
 
 // Chain composes text processors with lazy evaluation.
 type Chain struct {
-	reader        io.Reader
+	reader       io.Reader
 	utf8cleaner  *utf8clean.Processor
-	htmlStripper  *htmlstrip.Processor
-	elider        *elider.Processor
-	chunker       *chunker.Processor
-	splitter      *splitter.Processor
-	combiner      *combiner.Processor
-	byteBlocks    [][]byte
-	chunkBlocks   []textproc.Chunk
+	htmlStripper *htmlstrip.Processor
+	elider       *elider.Processor
+	chunker      *chunker.Processor
+	splitter     *splitter.Processor
+	combiner     *combiner.Processor
+	byteBlocks   [][]byte
+	chunkBlocks  []textproc.Chunk
 }
 
 // NewReader creates a new Chain with an io.Reader as input.
