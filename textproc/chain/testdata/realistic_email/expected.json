@@ -1,0 +1,9 @@
+[
+  [
+    "Hello,",
+    "This is the main body of a realistic email. It contains several paragraphs\nof meaningful text that should be preserved after processing.",
+    "Here are some useful resources:\nCheck out example.com for API documentation.\nVisit github.com for the source code.",
+    "\u003e This is some inline quoted text that should be elided.\n\u003e Another line of inline quotes.",
+    "Regards,\nJane Doe"
+  ]
+]

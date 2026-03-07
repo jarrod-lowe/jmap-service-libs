@@ -1,0 +1,22 @@
+Hello,
+
+This is the main body of a realistic email. It contains several paragraphs
+of meaningful text that should be preserved after processing.
+
+Here are some useful resources:
+Check out https://example.com/docs/api for API documentation.
+Visit https://github.com/user/repo/tree/main/src for the source code.
+
+> This is some inline quoted text that should be elided.
+> Another line of inline quotes.
+
+Regards,
+Jane Doe
+--
+-----Original Message-----
+From: sender@example.com
+Sent: Monday, March 7, 2026 10:00 AM
+To: recipient@example.com
+Subject: Previous conversation
+
+This is the original message that should be elided.
