@@ -102,7 +102,7 @@ jobs:
           go-version-file: 'go.mod'
 
       - name: Run fuzz tests
-        run: make fuzz FUZZ_TIME=10s
+        run: make fuzz FUZZ_ITERATIONS=100000x
 
   lint:
     runs-on: ubuntu-latest
