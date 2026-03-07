@@ -9,6 +9,7 @@ import (
 
 // TestDynamoDBClientInterface verifies that *dynamodb.Client satisfies DynamoDBClient.
 func TestDynamoDBClientInterface(t *testing.T) {
+	t.Parallel()
 	// This test verifies at compile time that *dynamodb.Client implements DynamoDBClient.
 	// We use a nil pointer since we only need to verify interface satisfaction.
 	var client *dynamodb.Client

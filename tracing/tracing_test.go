@@ -13,6 +13,7 @@ import (
 )
 
 func TestRequestID(t *testing.T) {
+	t.Parallel()
 	attr := RequestID("test-request-123")
 
 	if attr.Key != "request_id" {
@@ -24,6 +25,7 @@ func TestRequestID(t *testing.T) {
 }
 
 func TestAccountID(t *testing.T) {
+	t.Parallel()
 	attr := AccountID("user-456")
 
 	if attr.Key != "account_id" {
@@ -35,6 +37,7 @@ func TestAccountID(t *testing.T) {
 }
 
 func TestBlobID(t *testing.T) {
+	t.Parallel()
 	attr := BlobID("blob-789")
 
 	if attr.Key != "blob_id" {
@@ -46,6 +49,7 @@ func TestBlobID(t *testing.T) {
 }
 
 func TestParentBlobID(t *testing.T) {
+	t.Parallel()
 	attr := ParentBlobID("parent-blob-123")
 
 	if attr.Key != "parent_blob_id" {
@@ -57,6 +61,7 @@ func TestParentBlobID(t *testing.T) {
 }
 
 func TestContentType(t *testing.T) {
+	t.Parallel()
 	attr := ContentType("application/json")
 
 	if attr.Key != "content_type" {
@@ -68,6 +73,7 @@ func TestContentType(t *testing.T) {
 }
 
 func TestFunction(t *testing.T) {
+	t.Parallel()
 	attr := Function("blob-upload")
 
 	if attr.Key != "function" {
@@ -79,6 +85,7 @@ func TestFunction(t *testing.T) {
 }
 
 func TestJMAPMethod(t *testing.T) {
+	t.Parallel()
 	attr := JMAPMethod("Email/get")
 
 	if attr.Key != "jmap.method" {
@@ -90,6 +97,7 @@ func TestJMAPMethod(t *testing.T) {
 }
 
 func TestJMAPClientID(t *testing.T) {
+	t.Parallel()
 	attr := JMAPClientID("c0")
 
 	if attr.Key != "jmap.client_id" {
@@ -101,6 +109,7 @@ func TestJMAPClientID(t *testing.T) {
 }
 
 func TestJMAPCallIndex(t *testing.T) {
+	t.Parallel()
 	attr := JMAPCallIndex(2)
 
 	if attr.Key != "jmap.call_index" {
@@ -112,6 +121,7 @@ func TestJMAPCallIndex(t *testing.T) {
 }
 
 func TestTracer(t *testing.T) {
+	t.Parallel()
 	tracer := Tracer("test-tracer")
 
 	if tracer == nil {
@@ -146,6 +156,7 @@ func TestTracer(t *testing.T) {
 }
 
 func TestStartHandlerSpan(t *testing.T) {
+	t.Parallel()
 	exporter := tracetest.NewInMemoryExporter()
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithSyncer(exporter),
@@ -189,6 +200,7 @@ func TestStartHandlerSpan(t *testing.T) {
 }
 
 func TestStartMethodSpan(t *testing.T) {
+	t.Parallel()
 	exporter := tracetest.NewInMemoryExporter()
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithSyncer(exporter),
@@ -232,6 +244,7 @@ func TestStartMethodSpan(t *testing.T) {
 }
 
 func TestStartColdStartSpan(t *testing.T) {
+	t.Parallel()
 	exporter := tracetest.NewInMemoryExporter()
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithSyncer(exporter),
@@ -276,6 +289,7 @@ func (e *testError) Error() string {
 }
 
 func TestRecordError(t *testing.T) {
+	t.Parallel()
 	exporter := tracetest.NewInMemoryExporter()
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithSyncer(exporter),

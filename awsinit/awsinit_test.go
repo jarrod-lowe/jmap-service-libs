@@ -12,6 +12,7 @@ import (
 )
 
 func TestWithHTTPHandler_SetsHTTPHandlerMode(t *testing.T) {
+	t.Parallel()
 	cfg := &config{}
 
 	opt := WithHTTPHandler("test-api")
@@ -26,6 +27,7 @@ func TestWithHTTPHandler_SetsHTTPHandlerMode(t *testing.T) {
 }
 
 func TestWithFunctionName_SetsFunctionName(t *testing.T) {
+	t.Parallel()
 	cfg := &config{}
 
 	opt := WithFunctionName("my-function")

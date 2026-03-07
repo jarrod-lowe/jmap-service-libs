@@ -56,7 +56,7 @@ test:
 # Run tests with race detector
 test-race:
 	@echo "Running tests with race detector..."
-	go test -race ./...
+	go test -race -p 4 ./awsinit ./dbclient ./jmaperror ./logging ./plugincontract ./tracing
 
 # Run functional tests
 test-func:

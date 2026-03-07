@@ -7,20 +7,24 @@ import (
 
 // Test that types implement JMAPError interface
 func TestMethodErrorImplementsJMAPError(t *testing.T) {
+	t.Parallel()
 	var _ JMAPError = &MethodError{}
 }
 
 func TestSetErrorImplementsJMAPError(t *testing.T) {
+	t.Parallel()
 	var _ JMAPError = &SetError{}
 }
 
 func TestHTTPProblemImplementsJMAPError(t *testing.T) {
+	t.Parallel()
 	var _ JMAPError = &HTTPProblem{}
 }
 
 // MethodError tests
 
 func TestUnknownMethod(t *testing.T) {
+	t.Parallel()
 	err := UnknownMethod("method Foo/bar not found")
 
 	if err.Type() != "unknownMethod" {
@@ -40,6 +44,7 @@ func TestUnknownMethod(t *testing.T) {
 }
 
 func TestInvalidArguments(t *testing.T) {
+	t.Parallel()
 	err := InvalidArguments("mailboxId must be provided")
 
 	if err.Type() != "invalidArguments" {
@@ -59,6 +64,7 @@ func TestInvalidArguments(t *testing.T) {
 }
 
 func TestServerFail(t *testing.T) {
+	t.Parallel()
 	underlying := errors.New("database connection failed")
 	err := ServerFail("internal error occurred", underlying)
 
@@ -82,6 +88,7 @@ func TestServerFail(t *testing.T) {
 }
 
 func TestServerFailWithNilError(t *testing.T) {
+	t.Parallel()
 	err := ServerFail("internal error occurred", nil)
 
 	if err.Unwrap() != nil {
@@ -90,6 +97,7 @@ func TestServerFailWithNilError(t *testing.T) {
 }
 
 func TestAccountNotFound(t *testing.T) {
+	t.Parallel()
 	err := AccountNotFound("account abc123 not found")
 
 	if err.Type() != "accountNotFound" {
@@ -106,6 +114,7 @@ func TestAccountNotFound(t *testing.T) {
 }
 
 func TestInvalidResultReference(t *testing.T) {
+	t.Parallel()
 	err := InvalidResultReference("result reference #1 is invalid")
 
 	if err.Type() != "invalidResultReference" {
@@ -122,6 +131,7 @@ func TestInvalidResultReference(t *testing.T) {
 }
 
 func TestStateMismatch(t *testing.T) {
+	t.Parallel()
 	err := StateMismatch("state does not match expected value")
 
 	if err.Type() != "stateMismatch" {
@@ -138,6 +148,7 @@ func TestStateMismatch(t *testing.T) {
 }
 
 func TestForbidden(t *testing.T) {
+	t.Parallel()
 	err := Forbidden("operation not permitted for this user")
 
 	if err.Type() != "forbidden" {
@@ -154,6 +165,7 @@ func TestForbidden(t *testing.T) {
 }
 
 func TestCannotCalculateChanges(t *testing.T) {
+	t.Parallel()
 	err := CannotCalculateChanges("changes unavailable")
 
 	if err.Type() != "cannotCalculateChanges" {
@@ -170,6 +182,7 @@ func TestCannotCalculateChanges(t *testing.T) {
 }
 
 func TestUnsupportedFilter(t *testing.T) {
+	t.Parallel()
 	err := UnsupportedFilter("filter not supported")
 
 	if err.Type() != "unsupportedFilter" {
@@ -186,6 +199,7 @@ func TestUnsupportedFilter(t *testing.T) {
 }
 
 func TestUnsupportedSort(t *testing.T) {
+	t.Parallel()
 	err := UnsupportedSort("sort not supported")
 
 	if err.Type() != "unsupportedSort" {
@@ -202,6 +216,7 @@ func TestUnsupportedSort(t *testing.T) {
 }
 
 func TestAnchorNotFound(t *testing.T) {
+	t.Parallel()
 	err := AnchorNotFound("anchor not found")
 
 	if err.Type() != "anchorNotFound" {
@@ -218,6 +233,7 @@ func TestAnchorNotFound(t *testing.T) {
 }
 
 func TestMethodErrorUnwrapWithoutWrappedError(t *testing.T) {
+	t.Parallel()
 	err := InvalidArguments("test")
 
 	if err.Unwrap() != nil {
@@ -228,6 +244,7 @@ func TestMethodErrorUnwrapWithoutWrappedError(t *testing.T) {
 // SetError tests
 
 func TestNotFound(t *testing.T) {
+	t.Parallel()
 	err := NotFound("object abc123 not found")
 
 	if err.Type() != "notFound" {
@@ -250,6 +267,7 @@ func TestNotFound(t *testing.T) {
 }
 
 func TestInvalidProperties(t *testing.T) {
+	t.Parallel()
 	err := InvalidProperties("invalid property values", []string{"name", "email"})
 
 	if err.Type() != "invalidProperties" {
@@ -277,6 +295,7 @@ func TestInvalidProperties(t *testing.T) {
 }
 
 func TestInvalidPropertiesEmptyList(t *testing.T) {
+	t.Parallel()
 	err := InvalidProperties("invalid property values", []string{})
 
 	m := err.ToMap()
@@ -290,6 +309,7 @@ func TestInvalidPropertiesEmptyList(t *testing.T) {
 }
 
 func TestTooLarge(t *testing.T) {
+	t.Parallel()
 	err := TooLarge("object exceeds maximum size")
 
 	if err.Type() != "tooLarge" {
@@ -306,6 +326,7 @@ func TestTooLarge(t *testing.T) {
 }
 
 func TestOverQuota(t *testing.T) {
+	t.Parallel()
 	err := OverQuota("account storage quota exceeded")
 
 	if err.Type() != "overQuota" {
@@ -322,6 +343,7 @@ func TestOverQuota(t *testing.T) {
 }
 
 func TestTooManyPending(t *testing.T) {
+	t.Parallel()
 	err := TooManyPending("too many pending submissions")
 
 	if err.Type() != "tooManyPending" {
@@ -338,6 +360,7 @@ func TestTooManyPending(t *testing.T) {
 }
 
 func TestBlobNotFound(t *testing.T) {
+	t.Parallel()
 	err := BlobNotFound("blob xyz789 not found")
 
 	if err.Type() != "blobNotFound" {
@@ -354,6 +377,7 @@ func TestBlobNotFound(t *testing.T) {
 }
 
 func TestInvalidMailboxId(t *testing.T) {
+	t.Parallel()
 	err := InvalidMailboxId("mailbox ID is not valid")
 
 	if err.Type() != "invalidMailboxId" {
@@ -370,6 +394,7 @@ func TestInvalidMailboxId(t *testing.T) {
 }
 
 func TestInvalidEmail(t *testing.T) {
+	t.Parallel()
 	err := InvalidEmail("email content is malformed")
 
 	if err.Type() != "invalidEmail" {
@@ -386,6 +411,7 @@ func TestInvalidEmail(t *testing.T) {
 }
 
 func TestSetForbidden(t *testing.T) {
+	t.Parallel()
 	err := SetForbidden("operation not allowed")
 
 	if err.Type() != "forbidden" {
@@ -402,6 +428,7 @@ func TestSetForbidden(t *testing.T) {
 }
 
 func TestInvalidPatch(t *testing.T) {
+	t.Parallel()
 	err := InvalidPatch("invalid JSON Pointer")
 
 	if err.Type() != "invalidPatch" {
@@ -418,6 +445,7 @@ func TestInvalidPatch(t *testing.T) {
 }
 
 func TestMailboxHasEmail(t *testing.T) {
+	t.Parallel()
 	err := MailboxHasEmail("mailbox contains emails")
 
 	if err.Type() != "mailboxHasEmail" {
@@ -434,6 +462,7 @@ func TestMailboxHasEmail(t *testing.T) {
 }
 
 func TestSetServerFail(t *testing.T) {
+	t.Parallel()
 	err := SetServerFail("internal server error")
 
 	if err.Type() != "serverFail" {
@@ -452,6 +481,7 @@ func TestSetServerFail(t *testing.T) {
 // HTTPProblem tests
 
 func TestUnknownCapability(t *testing.T) {
+	t.Parallel()
 	err := UnknownCapability("capability urn:example:foo not supported")
 
 	if err.Type() != "urn:ietf:params:jmap:error:unknownCapability" {
@@ -480,6 +510,7 @@ func TestUnknownCapability(t *testing.T) {
 }
 
 func TestNotJSON(t *testing.T) {
+	t.Parallel()
 	err := NotJSON("request body is not valid JSON")
 
 	if err.Type() != "urn:ietf:params:jmap:error:notJSON" {
@@ -502,6 +533,7 @@ func TestNotJSON(t *testing.T) {
 }
 
 func TestNotRequest(t *testing.T) {
+	t.Parallel()
 	err := NotRequest("missing methodCalls field")
 
 	if err.Type() != "urn:ietf:params:jmap:error:notRequest" {
@@ -524,6 +556,7 @@ func TestNotRequest(t *testing.T) {
 }
 
 func TestLimit(t *testing.T) {
+	t.Parallel()
 	err := Limit("maxSizeRequest", "request exceeds maximum size of 10MB")
 
 	if err.Type() != "urn:ietf:params:jmap:error:limit" {
@@ -552,6 +585,7 @@ func TestLimit(t *testing.T) {
 }
 
 func TestLimitEmptyLimitName(t *testing.T) {
+	t.Parallel()
 	err := Limit("", "some limit exceeded")
 
 	m := err.ToMap()
@@ -563,6 +597,7 @@ func TestLimitEmptyLimitName(t *testing.T) {
 // Test that errors work with errors.Is/As
 
 func TestMethodErrorWorksWithErrorsAs(t *testing.T) {
+	t.Parallel()
 	underlying := errors.New("database error")
 	err := ServerFail("server failure", underlying)
 
@@ -576,6 +611,7 @@ func TestMethodErrorWorksWithErrorsAs(t *testing.T) {
 }
 
 func TestMethodErrorWorksWithErrorsIs(t *testing.T) {
+	t.Parallel()
 	underlying := errors.New("database error")
 	err := ServerFail("server failure", underlying)
 

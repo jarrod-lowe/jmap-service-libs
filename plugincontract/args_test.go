@@ -5,6 +5,7 @@ import (
 )
 
 func TestArgs_String(t *testing.T) {
+	t.Parallel()
 	args := Args{
 		"name":   "test",
 		"number": 42,
@@ -47,6 +48,7 @@ func TestArgs_String(t *testing.T) {
 }
 
 func TestArgs_StringOr(t *testing.T) {
+	t.Parallel()
 	args := Args{
 		"name":   "test",
 		"number": 42,
@@ -75,6 +77,7 @@ func TestArgs_StringOr(t *testing.T) {
 }
 
 func TestArgs_Int(t *testing.T) {
+	t.Parallel()
 	args := Args{
 		"int":      int64(42),
 		"float":    float64(99),
@@ -150,6 +153,7 @@ func TestArgs_Int(t *testing.T) {
 }
 
 func TestArgs_IntOr(t *testing.T) {
+	t.Parallel()
 	args := Args{
 		"count":  float64(5),
 		"string": "not a number",
@@ -178,6 +182,7 @@ func TestArgs_IntOr(t *testing.T) {
 }
 
 func TestArgs_Float(t *testing.T) {
+	t.Parallel()
 	args := Args{
 		"pi":     float64(3.14),
 		"int":    int64(42),
@@ -231,6 +236,7 @@ func TestArgs_Float(t *testing.T) {
 }
 
 func TestArgs_Bool(t *testing.T) {
+	t.Parallel()
 	args := Args{
 		"enabled":  true,
 		"disabled": false,
@@ -273,6 +279,7 @@ func TestArgs_Bool(t *testing.T) {
 }
 
 func TestArgs_BoolOr(t *testing.T) {
+	t.Parallel()
 	args := Args{
 		"enabled": true,
 		"string":  "true",
@@ -301,6 +308,7 @@ func TestArgs_BoolOr(t *testing.T) {
 }
 
 func TestArgs_StringSlice(t *testing.T) {
+	t.Parallel()
 	args := Args{
 		"ids":    []any{"a", "b", "c"},
 		"empty":  []any{},
@@ -365,6 +373,7 @@ func TestArgs_StringSlice(t *testing.T) {
 }
 
 func TestArgs_Object(t *testing.T) {
+	t.Parallel()
 	args := Args{
 		"nested": map[string]any{
 			"key": "value",
@@ -402,6 +411,7 @@ func TestArgs_Object(t *testing.T) {
 }
 
 func TestArgs_Has(t *testing.T) {
+	t.Parallel()
 	args := Args{
 		"exists": "value",
 		"null":   nil,
@@ -427,6 +437,7 @@ func TestArgs_Has(t *testing.T) {
 }
 
 func TestArgs_NilArgs(t *testing.T) {
+	t.Parallel()
 	var args Args
 
 	t.Run("String returns false on nil Args", func(t *testing.T) {

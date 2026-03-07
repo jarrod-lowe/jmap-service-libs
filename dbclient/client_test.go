@@ -9,6 +9,7 @@ import (
 
 // TestNewClient verifies that NewClient returns a value satisfying DynamoDBClient.
 func TestNewClient(t *testing.T) {
+	t.Parallel()
 	cfg := aws.Config{}
 	client := dbclient.NewClient(cfg)
 
