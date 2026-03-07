@@ -8,19 +8,19 @@ import (
 	"github.com/jarrod-lowe/jmap-service-libs/textproc"
 )
 
-// mockBytesProcessor implements textproc.BytesProcessor for testing
-type mockBytesProcessor struct {
-	blocks [][]byte
+// mockStringProcessor implements textproc.StringProcessor for testing
+type mockStringProcessor struct {
+	blocks []string
 	index  int
 	err    error
 }
 
-func (m *mockBytesProcessor) Next() ([]byte, error) {
+func (m *mockStringProcessor) Next() (string, error) {
 	if m.err != nil {
-		return nil, m.err
+		return "", m.err
 	}
 	if m.index >= len(m.blocks) {
-		return nil, io.EOF
+		return "", io.EOF
 	}
 	result := m.blocks[m.index]
 	m.index++
@@ -28,7 +28,7 @@ func (m *mockBytesProcessor) Next() ([]byte, error) {
 }
 
 func TestBasicParagraphSplitting(t *testing.T) {
-	src := &mockBytesProcessor{blocks: [][]byte{[]byte("Para1\n\nPara2\n\nPara3")}}
+	src := &mockStringProcessor{blocks: []string{"Para1\n\nPara2\n\nPara3"}}
 	p := NewProcessor(src)
 
 	result, err := p.Next()
@@ -62,7 +62,7 @@ func TestBasicParagraphSplitting(t *testing.T) {
 }
 
 func TestCrossPlatformEndings(t *testing.T) {
-	src := &mockBytesProcessor{blocks: [][]byte{[]byte("Para1\r\n\r\nPara2")}}
+	src := &mockStringProcessor{blocks: []string{"Para1\r\n\r\nPara2"}}
 	p := NewProcessor(src)
 
 	result, err := p.Next()
@@ -88,7 +88,7 @@ func TestCrossPlatformEndings(t *testing.T) {
 }
 
 func TestHorizontalRules(t *testing.T) {
-	src := &mockBytesProcessor{blocks: [][]byte{[]byte("Para1\n---\nPara2\n***\nPara3")}}
+	src := &mockStringProcessor{blocks: []string{"Para1\n---\nPara2\n***\nPara3"}}
 	p := NewProcessor(src)
 
 	result, err := p.Next()
@@ -122,7 +122,7 @@ func TestHorizontalRules(t *testing.T) {
 }
 
 func TestWhitespaceTrimming(t *testing.T) {
-	src := &mockBytesProcessor{blocks: [][]byte{[]byte("  Para1  \n\n  Para2  ")}}
+	src := &mockStringProcessor{blocks: []string{"  Para1  \n\n  Para2  "}}
 	p := NewProcessor(src)
 
 	result, err := p.Next()
@@ -148,7 +148,7 @@ func TestWhitespaceTrimming(t *testing.T) {
 }
 
 func TestEmptyParagraphSkipping(t *testing.T) {
-	src := &mockBytesProcessor{blocks: [][]byte{[]byte("Para1\n\n\n\nPara2")}}
+	src := &mockStringProcessor{blocks: []string{"Para1\n\n\n\nPara2"}}
 	p := NewProcessor(src)
 
 	result, err := p.Next()
@@ -174,7 +174,7 @@ func TestEmptyParagraphSkipping(t *testing.T) {
 }
 
 func TestBoundarySplitAcrossBlocks(t *testing.T) {
-	src := &mockBytesProcessor{blocks: [][]byte{[]byte("Para1\n"), []byte("\nPara2")}}
+	src := &mockStringProcessor{blocks: []string{"Para1\n", "\nPara2"}}
 	p := NewProcessor(src)
 
 	result, err := p.Next()
@@ -204,7 +204,7 @@ func TestInterfaceCompliance(t *testing.T) {
 }
 
 func TestEOFHandling(t *testing.T) {
-	src := &mockBytesProcessor{blocks: [][]byte{[]byte("Para1")}}
+	src := &mockStringProcessor{blocks: []string{"Para1"}}
 	p := NewProcessor(src)
 
 	result, err := p.Next()
@@ -223,7 +223,7 @@ func TestEOFHandling(t *testing.T) {
 
 func TestErrorPropagation(t *testing.T) {
 	testErr := errors.New("test error")
-	src := &mockBytesProcessor{err: testErr}
+	src := &mockStringProcessor{err: testErr}
 	p := NewProcessor(src)
 
 	_, err := p.Next()
@@ -233,7 +233,7 @@ func TestErrorPropagation(t *testing.T) {
 }
 
 func TestNewProcessorCreatesProcessor(t *testing.T) {
-	src := &mockBytesProcessor{blocks: [][]byte{[]byte("test")}}
+	src := &mockStringProcessor{blocks: []string{"test"}}
 	p := NewProcessor(src)
 
 	if p == nil {

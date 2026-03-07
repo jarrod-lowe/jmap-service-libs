@@ -49,7 +49,7 @@ func TestNextEOF(t *testing.T) {
 }
 
 func TestFullPipelineProcessesHTML(t *testing.T) {
-	// Test that the full pipeline strips HTML and returns chunks
+	// Test that full pipeline strips HTML and returns chunks
 	html := `<p>Hello <b>world</b></p><p>This is a test</p>`
 	r := strings.NewReader(html)
 	c, err := NewReader(r)
@@ -69,10 +69,9 @@ func TestFullPipelineProcessesHTML(t *testing.T) {
 
 	// Verify HTML was stripped (no < or > in output)
 	for _, chunk := range result {
-		for _, b := range chunk {
-			if b == '<' || b == '>' {
-				t.Errorf("HTML not stripped: found '%c' in output", b)
-			}
+		chunkStr := string(chunk)
+		if strings.Contains(chunkStr, "<") || strings.Contains(chunkStr, ">") {
+			t.Errorf("HTML not stripped: found HTML in output: %s", chunkStr)
 		}
 	}
 }

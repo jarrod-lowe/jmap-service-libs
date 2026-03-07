@@ -45,22 +45,59 @@ func TestChunkSliceType(t *testing.T) {
 }
 
 func TestChunkConversion(t *testing.T) {
-	// Test conversion between []byte and Chunk
-	data := []byte("hello world")
-	c := Chunk(data)
+	// Test that Chunk is a string type
+	c := Chunk("hello world")
 
-	if c == nil {
-		t.Error("expected Chunk to be non-nil")
+	if c == "" {
+		t.Error("expected Chunk to be non-empty")
 	}
 
-	if len(c) != len(data) {
-		t.Errorf("expected Chunk length %d, got %d", len(data), len(c))
+	if len(c) != 11 {
+		t.Errorf("expected Chunk length 11, got %d", len(c))
 	}
 
-	// Verify it's a true conversion
-	for i := range data {
-		if c[i] != data[i] {
-			t.Errorf("mismatch at index %d: expected %d, got %d", i, data[i], c[i])
-		}
+	if c != "hello world" {
+		t.Errorf("expected Chunk content 'hello world', got '%s'", c)
+	}
+}
+
+func TestChunkAsString(t *testing.T) {
+	// Chunk is a type alias for string
+	// This test verifies Chunk can be created directly from string
+	c := Chunk("test data")
+
+	if len(c) != 9 {
+		t.Errorf("expected Chunk length 9, got %d", len(c))
+	}
+
+	// As a string, no conversion needed
+	if c != "test data" {
+		t.Errorf("expected Chunk content 'test data', got '%s'", c)
+	}
+}
+
+func TestChunkSliceAsString(t *testing.T) {
+	// ChunkSlice is a slice of string Chunks
+	cs := ChunkSlice{
+		"first",
+		"second",
+		"third",
+	}
+
+	if len(cs) != 3 {
+		t.Errorf("expected ChunkSlice length 3, got %d", len(cs))
+	}
+
+	// No string conversion needed
+	if cs[0] != "first" {
+		t.Errorf("expected first chunk 'first', got '%s'", cs[0])
+	}
+
+	if cs[1] != "second" {
+		t.Errorf("expected second chunk 'second', got '%s'", cs[1])
+	}
+
+	if cs[2] != "third" {
+		t.Errorf("expected third chunk 'third', got '%s'", cs[2])
 	}
 }

@@ -6,30 +6,30 @@ import (
 	"github.com/jarrod-lowe/jmap-service-libs/textproc"
 )
 
-// Processor splits chunks that exceed the byte limit into smaller chunks.
+// Processor splits chunks that exceed the character limit into smaller chunks.
 // It tries sentence boundaries first, then word boundaries, then character boundaries.
 type Processor struct {
 	src       textproc.ChunkProcessor
-	byteLimit int
+	charLimit int
 	remaining textproc.Chunk
 }
 
 // Option configures a Processor.
 type Option func(*Processor)
 
-// WithByteLimit sets the maximum byte size for chunks.
-func WithByteLimit(n int) Option {
+// WithCharLimit sets the maximum character size for chunks.
+func WithCharLimit(n int) Option {
 	return func(p *Processor) {
-		p.byteLimit = n
+		p.charLimit = n
 	}
 }
 
 // NewProcessor creates a new Processor with the given ChunkProcessor source.
-// Chunks larger than maxBytes will be split into smaller chunks.
-func NewProcessor(src textproc.ChunkProcessor, maxBytes int, opts ...Option) *Processor {
+// Chunks larger than maxChars will be split into smaller chunks.
+func NewProcessor(src textproc.ChunkProcessor, maxChars int, opts ...Option) *Processor {
 	p := &Processor{
 		src:       src,
-		byteLimit: maxBytes,
+		charLimit: maxChars,
 	}
 	for _, opt := range opts {
 		opt(p)
@@ -39,12 +39,12 @@ func NewProcessor(src textproc.ChunkProcessor, maxBytes int, opts ...Option) *Pr
 
 // trimLeading removes leading whitespace from a Chunk.
 func trimLeading(chunk textproc.Chunk) textproc.Chunk {
-	for i := 0; i < len(chunk); i++ {
-		if chunk[i] != ' ' && chunk[i] != '\t' && chunk[i] != '\n' {
+	for i, r := range chunk {
+		if r != ' ' && r != '\t' && r != '\n' {
 			return chunk[i:]
 		}
 	}
-	return nil // All whitespace
+	return "" // All whitespace
 }
 
 // trimTrailing removes trailing whitespace from a Chunk.
@@ -54,7 +54,7 @@ func trimTrailing(chunk textproc.Chunk) textproc.Chunk {
 			return chunk[:i+1]
 		}
 	}
-	return nil // All whitespace
+	return "" // All whitespace
 }
 
 // Next returns the next Chunk, splitting large chunks if necessary.
@@ -62,17 +62,18 @@ func (p *Processor) Next() (textproc.Chunk, error) {
 	// Return any remaining content first
 	if len(p.remaining) > 0 {
 		result := p.remaining
-		p.remaining = nil
+		p.remaining = ""
 		result = trimLeading(result)
-		if result == nil {
+		if result == "" {
 			return p.Next() // All whitespace, skip
 		}
-		if len(result) <= p.byteLimit {
+		// Use character count for limit check
+		if len([]rune(result)) <= p.charLimit {
 			return result, nil
 		}
 		// If remaining is not much larger than limit, return as-is to avoid over-splitting
 		// Otherwise, split it
-		if len(result) <= p.byteLimit*2 {
+		if len([]rune(result)) <= p.charLimit*2 {
 			return result, nil
 		}
 		return p.splitChunk(result)
@@ -81,22 +82,22 @@ func (p *Processor) Next() (textproc.Chunk, error) {
 	// Get next chunk from source
 	chunk, err := p.src.Next()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	// Skip empty chunks
-	if len(chunk) == 0 {
+	if chunk == "" {
 		return p.Next()
 	}
 
 	// Trim leading whitespace
 	chunk = trimLeading(chunk)
-	if chunk == nil {
+	if chunk == "" {
 		return p.Next() // All whitespace, skip
 	}
 
 	// If chunk fits, return it directly
-	if len(chunk) <= p.byteLimit {
+	if len([]rune(chunk)) <= p.charLimit {
 		return chunk, nil
 	}
 
@@ -104,7 +105,7 @@ func (p *Processor) Next() (textproc.Chunk, error) {
 	return p.splitChunk(chunk)
 }
 
-// splitChunk splits a chunk that exceeds the byte limit.
+// splitChunk splits a chunk that exceeds the char limit.
 func (p *Processor) splitChunk(chunk textproc.Chunk) (textproc.Chunk, error) {
 	// Try sentence boundary first
 	splitIdx := p.findSentenceBoundary(chunk)
@@ -132,68 +133,64 @@ func (p *Processor) splitChunk(chunk textproc.Chunk) (textproc.Chunk, error) {
 	return chunk, nil
 }
 
-// findSentenceBoundary finds the best sentence boundary within byteLimit.
+// findSentenceBoundary finds the best sentence boundary within charLimit.
 // Returns the index where remaining content starts (after the delimiter).
 // The delimiter ([.!?。] and following whitespace) is NOT included in the first piece.
 func (p *Processor) findSentenceBoundary(chunk textproc.Chunk) int {
 	// Sentence pattern: [.!?。] followed by whitespace
 	sentencePattern := regexp.MustCompile(`[.!?。]\s+`)
 
-	// Find all matches
-	matches := sentencePattern.FindAllIndex(chunk, -1)
+	// Find all matches in the string
+	matches := sentencePattern.FindAllStringIndex(string(chunk), -1)
 	if len(matches) == 0 {
 		return 0
 	}
 
-	// Find the match that gives the first reasonable chunk within byteLimit
+	// Find the match that gives the first reasonable chunk within charLimit
 	for _, match := range matches {
 		// match[0] is position of [.!?], match[1] is end of whitespace
 		// First piece should be up to match[0]+1 (includes [.!?], excludes whitespace)
 		// remaining starts at match[1] (after whitespace)
 		endOfSentence := match[0] + 1 // Include the [.!?] in first piece
-		if endOfSentence <= p.byteLimit && endOfSentence >= p.byteLimit/4 {
-			return endOfSentence // Return position after [.!]?, before whitespace
+		// Check character count up to this point
+		if len([]rune(chunk[:endOfSentence])) <= p.charLimit && len([]rune(chunk[:endOfSentence])) >= p.charLimit/4 {
+			return endOfSentence // Return position after [.!?], before whitespace
 		}
 	}
 
 	return 0
 }
 
-// findWordBoundary finds the last word boundary within byteLimit.
+// findWordBoundary finds the last word boundary within charLimit.
 // Returns the index where remaining content starts (after the space).
 // The space is NOT included in the first piece.
 func (p *Processor) findWordBoundary(chunk textproc.Chunk) int {
-	// Find the last space within byteLimit
-	searchEnd := p.byteLimit
-	if searchEnd > len(chunk) {
-		searchEnd = len(chunk)
+	runes := []rune(chunk)
+	searchEnd := p.charLimit
+	if searchEnd > len(runes) {
+		searchEnd = len(runes)
 	}
 
+	// Find the last space within charLimit
 	for i := searchEnd - 1; i >= 0; i-- {
-		if chunk[i] == ' ' || chunk[i] == '\t' || chunk[i] == '\n' {
-			// First piece is chunk[:i], remaining is chunk[i+1:]
-			return i + 1 // Remaining starts after the space
+		if runes[i] == ' ' || runes[i] == '\t' || runes[i] == '\n' {
+			// First piece is chunk up to this rune, remaining is after this rune
+			// Convert rune index back to byte index
+			return len(string(runes[:i+1]))
 		}
 	}
 	return 0
 }
 
-// findCharacterBoundary finds a safe UTF-8 character boundary at or before byteLimit.
+// findCharacterBoundary finds a safe UTF-8 character boundary at or before charLimit.
 // Returns the index where remaining content starts.
 func (p *Processor) findCharacterBoundary(chunk textproc.Chunk) int {
-	pos := p.byteLimit
-	if pos > len(chunk) {
-		pos = len(chunk)
+	runes := []rune(chunk)
+	pos := p.charLimit
+	if pos > len(runes) {
+		pos = len(runes)
 	}
 
-	// Find nearest valid UTF-8 boundary at or before pos
-	for i := pos; i > 0; i-- {
-		// Check if byte i is the start of a UTF-8 rune
-		b := chunk[i]
-		if b&0xC0 != 0x80 { // Not a continuation byte
-			return i
-		}
-	}
-
-	return 0
+	// Return the byte index for the rune position
+	return len(string(runes[:pos]))
 }

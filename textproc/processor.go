@@ -2,9 +2,16 @@ package textproc
 
 // BytesProcessor reads bytes and writes processed bytes.
 // Input: io.Reader, Output: []byte blocks via Next()
-// Implemented by: htmlstrip, elider
+// Implemented by: reader, utf8clean
 type BytesProcessor interface {
 	Next() ([]byte, error)
+}
+
+// StringProcessor reads validated UTF-8 text and writes processed text.
+// Input: string (valid UTF-8), Output: string blocks via Next()
+// Implemented by: htmlstrip, elider, chunker, splitter
+type StringProcessor interface {
+	Next() (string, error)
 }
 
 // ChunkProcessor reads chunks and writes chunks.

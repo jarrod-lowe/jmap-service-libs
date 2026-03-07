@@ -8,17 +8,17 @@ import (
 	"github.com/jarrod-lowe/jmap-service-libs/textproc"
 )
 
-// Processor reads byte blocks and splits them into chunks based on paragraph boundaries.
+// Processor reads string blocks and splits them into chunks based on paragraph boundaries.
 type Processor struct {
-	src             textproc.BytesProcessor
-	buffer          []byte         // Input from source
+	src             textproc.StringProcessor
+	buffer          string         // Input from source
 	boundaryPattern *regexp.Regexp // Pre-compiled boundary detection
 }
 
 const boundaryPattern = `\n\n|\r\n\r\n|\n---\n|\n\*\*\*\n`
 
-// NewProcessor creates a new Processor with the given BytesProcessor source.
-func NewProcessor(src textproc.BytesProcessor) *Processor {
+// NewProcessor creates a new Processor with the given StringProcessor source.
+func NewProcessor(src textproc.StringProcessor) *Processor {
 	return &Processor{
 		src:             src,
 		boundaryPattern: regexp.MustCompile(boundaryPattern),
@@ -31,28 +31,28 @@ func (p *Processor) Next() (textproc.Chunk, error) {
 
 	for {
 		// Read more data if buffer is empty
-		for len(p.buffer) == 0 {
+		for p.buffer == "" {
 			block, err := p.src.Next()
 			if err == io.EOF {
 				// Source exhausted with no more data
-				return nil, io.EOF
+				return "", io.EOF
 			}
 			if err != nil {
 				// Other error
-				return nil, err
+				return "", err
 			}
-			p.buffer = append(p.buffer, block...)
+			p.buffer += block
 		}
 
 		// Search for boundary pattern in buffer
-		loc := p.boundaryPattern.FindIndex(p.buffer)
+		loc := p.boundaryPattern.FindStringIndex(p.buffer)
 		if loc != nil {
 			// Found boundary: extract paragraph
 			paragraph := p.buffer[:loc[0]]
 			p.buffer = p.buffer[loc[1]:]
 
 			// Trim whitespace
-			trimmed := strings.TrimSpace(string(paragraph))
+			trimmed := strings.TrimSpace(paragraph)
 			if trimmed != "" {
 				return textproc.Chunk(trimmed), nil
 			}
@@ -64,22 +64,22 @@ func (p *Processor) Next() (textproc.Chunk, error) {
 		block, err := p.src.Next()
 		if err == io.EOF {
 			// Source exhausted, emit remaining content
-			trimmed := strings.TrimSpace(string(p.buffer))
-			p.buffer = nil
+			trimmed := strings.TrimSpace(p.buffer)
+			p.buffer = ""
 			if trimmed != "" {
 				return textproc.Chunk(trimmed), nil
 			}
-			return nil, io.EOF
+			return "", io.EOF
 		}
 		if err != nil {
 			// Other error
-			return nil, err
+			return "", err
 		}
 
 		// Check if buffer would be too large
 		if len(p.buffer)+len(block) > maxBufferSize {
 			// Emit current buffer as-is
-			trimmed := strings.TrimSpace(string(p.buffer))
+			trimmed := strings.TrimSpace(p.buffer)
 			p.buffer = block
 			if trimmed != "" {
 				return textproc.Chunk(trimmed), nil
@@ -88,6 +88,6 @@ func (p *Processor) Next() (textproc.Chunk, error) {
 		}
 
 		// Append new block and continue looking for boundary
-		p.buffer = append(p.buffer, block...)
+		p.buffer += block
 	}
 }

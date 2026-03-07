@@ -18,10 +18,10 @@ type mockChunkProcessor struct {
 
 func (m *mockChunkProcessor) Next() (textproc.Chunk, error) {
 	if m.err != nil {
-		return nil, m.err
+		return "", m.err
 	}
 	if m.index >= len(m.chunks) {
-		return nil, io.EOF
+		return "", io.EOF
 	}
 	result := m.chunks[m.index]
 	m.index++
@@ -266,28 +266,28 @@ func TestErrorPropagation(t *testing.T) {
 
 // TestUTF8Safety verifies multi-byte characters are not broken during character splits.
 func TestUTF8Safety(t *testing.T) {
-	// Use shorter string to fit within limit
+	// Use a longer string that exceeds character limit
 	src := &mockChunkProcessor{chunks: []textproc.Chunk{
-		textproc.Chunk("日本語。英語。"),
+		textproc.Chunk("日本語です。英語です。"),
 	}}
-	p := NewProcessor(src, 10)
+	p := NewProcessor(src, 5) // 5 characters limit
 
 	result, err := p.Next()
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	// Should split at character boundary since no space after period
-	if string(result) != "日本語" {
-		t.Errorf("expected '日本語', got '%s'", string(result))
+	// Should split at character boundary, first 5 chars
+	if string(result) != "日本語です" {
+		t.Errorf("expected '日本語です', got '%s'", string(result))
 	}
 
 	result, err = p.Next()
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	// Remaining chunk should be returned as-is (7 bytes < 30 = 3*10)
-	if string(result) != "。英語。" {
-		t.Errorf("expected '。英語。', got '%s'", string(result))
+	// Remaining chunk
+	if string(result) != "。英語です。" {
+		t.Errorf("expected '。英語です。', got '%s'", string(result))
 	}
 
 	_, err = p.Next()
@@ -299,25 +299,26 @@ func TestUTF8Safety(t *testing.T) {
 // TestCharacterSplitUTF8NoBreak verifies character split doesn't break multi-byte chars.
 func TestCharacterSplitUTF8NoBreak(t *testing.T) {
 	src := &mockChunkProcessor{chunks: []textproc.Chunk{
-		textproc.Chunk("日本語文字"),
+		textproc.Chunk("日本語文字列です"),
 	}}
-	p := NewProcessor(src, 10)
+	p := NewProcessor(src, 5) // 5 characters limit
 
 	result, err := p.Next()
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	// Should split at safe boundary - "日本語" is 9 bytes
-	if string(result) != "日本語" {
-		t.Errorf("expected '日本語', got '%s'", string(result))
+	// Should split at safe character boundary - first 5 chars
+	if string(result) != "日本語文字" {
+		t.Errorf("expected '日本語文字', got '%s'", string(result))
 	}
 
 	result, err = p.Next()
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	if string(result) != "文字" {
-		t.Errorf("expected '文字', got '%s'", string(result))
+	// Remaining
+	if string(result) != "列です" {
+		t.Errorf("expected '列です', got '%s'", string(result))
 	}
 
 	_, err = p.Next()
@@ -328,7 +329,7 @@ func TestCharacterSplitUTF8NoBreak(t *testing.T) {
 
 // TestNewProcessorCreatesProcessor verifies NewProcessor creates a valid Processor.
 func TestNewProcessorCreatesProcessor(t *testing.T) {
-	src := &mockChunkProcessor{chunks: []textproc.Chunk{[]byte("test")}}
+	src := &mockChunkProcessor{chunks: []textproc.Chunk{"test"}}
 	p := NewProcessor(src, 100)
 
 	if p == nil {

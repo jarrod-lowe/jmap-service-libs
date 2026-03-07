@@ -8,10 +8,10 @@ import (
 	"golang.org/x/net/html"
 )
 
-// Processor reads bytes from a source and returns them in blocks
+// Processor reads strings from a source and returns them in blocks
 // with HTML markup removed.
 type Processor struct {
-	src       textproc.BytesProcessor
+	src       textproc.StringProcessor
 	blockSize int
 	tokenizer *html.Tokenizer
 	buf       strings.Builder
@@ -29,14 +29,14 @@ func WithBlockSize(n int) Option {
 	}
 }
 
-// processorReader adapts a BytesProcessor to an io.Reader for use with html.Tokenizer.
+// processorReader adapts a StringProcessor to an io.Reader for use with html.Tokenizer.
 type processorReader struct {
 	proc *Processor
 	buf  []byte
 	pos  int
 }
 
-// Read implements io.Reader by pulling from the BytesProcessor.
+// Read implements io.Reader by pulling from the StringProcessor.
 func (pr *processorReader) Read(p []byte) (n int, err error) {
 	// If buffer is empty, pull more data
 	if pr.pos >= len(pr.buf) {
@@ -44,7 +44,7 @@ func (pr *processorReader) Read(p []byte) (n int, err error) {
 		if err != nil {
 			return 0, err
 		}
-		pr.buf = block
+		pr.buf = []byte(block)
 		pr.pos = 0
 	}
 
@@ -54,9 +54,9 @@ func (pr *processorReader) Read(p []byte) (n int, err error) {
 	return n, nil
 }
 
-// NewProcessor creates a new Processor with the given BytesProcessor source.
+// NewProcessor creates a new Processor with the given StringProcessor source.
 // This enables pull-based lazy evaluation.
-func NewProcessor(src textproc.BytesProcessor, opts ...Option) *Processor {
+func NewProcessor(src textproc.StringProcessor, opts ...Option) *Processor {
 	p := &Processor{
 		src:       src,
 		blockSize: 1024,
@@ -69,21 +69,21 @@ func NewProcessor(src textproc.BytesProcessor, opts ...Option) *Processor {
 
 // Next reads the next block of data from the source with HTML removed.
 // Returns io.EOF when all data has been consumed.
-func (p *Processor) Next() ([]byte, error) {
+func (p *Processor) Next() (string, error) {
 	// Initialize tokenizer from pull-based source if needed
 	if p.tokenizer == nil {
 		p.tokenizer = html.NewTokenizer(&processorReader{proc: p})
 	}
 
 	if p.done && p.buf.Len() == 0 {
-		return nil, io.EOF
+		return "", io.EOF
 	}
 
 	for {
 		if p.buf.Len() >= p.blockSize {
 			result := strings.TrimRight(p.buf.String(), " \t\n\r")
 			p.buf.Reset()
-			return []byte(result), nil
+			return result, nil
 		}
 
 		tokenType := p.tokenizer.Next()
@@ -95,11 +95,11 @@ func (p *Processor) Next() ([]byte, error) {
 				if p.buf.Len() > 0 {
 					result := strings.TrimRight(p.buf.String(), " \t\n\r")
 					p.buf.Reset()
-					return []byte(result), nil
+					return result, nil
 				}
-				return nil, io.EOF
+				return "", io.EOF
 			}
-			return nil, err
+			return "", err
 
 		case html.TextToken:
 			// Only add text if we're not inside a script or style tag

@@ -17,11 +17,11 @@ import (
 const (
 	DefaultMaxBytes  = 100000
 	DefaultOverlap   = 2
-	DefaultByteLimit = 4000
+	DefaultCharLimit = 4000
 )
 
 // Chain composes text processors with lazy evaluation.
-// The pipeline is: reader → utf8clean → htmlstrip → elider → chunker → splitter → combiner
+// The pipeline is: reader → utf8clean → BytesToStringAdapter → htmlstrip → elider → chunker → splitter → combiner
 type Chain struct {
 	combiner *combiner.Processor
 }
@@ -34,17 +34,23 @@ func NewReader(r io.Reader) (*Chain, error) {
 
 // NewReaderConfig creates a new Chain with custom configuration.
 func NewReaderConfig(r io.Reader, maxBytes, overlap int) (*Chain, error) {
-	return NewReaderConfigWithByteLimit(r, maxBytes, overlap, DefaultByteLimit)
+	return NewReaderConfigWithCharLimit(r, maxBytes, overlap, DefaultCharLimit)
 }
 
 // NewReaderConfigWithByteLimit creates a new Chain with custom configuration including byte limit.
+// Deprecated: Use NewReaderConfigWithCharLimit instead.
 func NewReaderConfigWithByteLimit(r io.Reader, maxBytes, overlap, byteLimit int) (*Chain, error) {
 	return NewReaderConfigWithEncoding(r, maxBytes, overlap, byteLimit, "", "")
 }
 
+// NewReaderConfigWithCharLimit creates a new Chain with custom configuration including char limit.
+func NewReaderConfigWithCharLimit(r io.Reader, maxBytes, overlap, charLimit int) (*Chain, error) {
+	return NewReaderConfigWithEncoding(r, maxBytes, overlap, charLimit, "", "")
+}
+
 // NewReaderConfigWithEncoding creates a new Chain with custom configuration including charset and transfer encoding.
 // The charset and transferEncoding parameters are passed through to the utf8clean processor.
-func NewReaderConfigWithEncoding(r io.Reader, maxBytes, overlap, byteLimit int, charset, transferEncoding string) (*Chain, error) {
+func NewReaderConfigWithEncoding(r io.Reader, maxBytes, overlap, charLimit int, charset, transferEncoding string) (*Chain, error) {
 	// Build the pull-based pipeline
 	readerProc := reader.New(r)
 	utf8Proc, err := utf8clean.NewProcessor(readerProc,
@@ -54,11 +60,13 @@ func NewReaderConfigWithEncoding(r io.Reader, maxBytes, overlap, byteLimit int, 
 	if err != nil {
 		return nil, err
 	}
-	htmlProc := htmlstrip.NewProcessor(utf8Proc)
+	// Adapter converts BytesProcessor output to strings
+	adapterProc := textproc.NewBytesToStringAdapter(utf8Proc)
+	htmlProc := htmlstrip.NewProcessor(adapterProc)
 	eliderProc := elider.NewProcessor(htmlProc)
 	chunkerProc := chunker.NewProcessor(eliderProc)
 	splitterProc := splitter.NewProcessor(chunkerProc, maxBytes)
-	combinerProc := combiner.NewProcessor(splitterProc, combiner.WithByteLimit(byteLimit), combiner.WithOverlap(overlap))
+	combinerProc := combiner.NewProcessor(splitterProc, combiner.WithCharLimit(charLimit), combiner.WithOverlap(overlap))
 
 	return &Chain{combiner: combinerProc}, nil
 }
