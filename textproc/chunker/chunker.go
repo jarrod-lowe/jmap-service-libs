@@ -1,81 +1,93 @@
 package chunker
 
 import (
+	"io"
+	"regexp"
+	"strings"
+
 	"github.com/jarrod-lowe/jmap-service-libs/textproc"
 )
 
-// Processor reads chunks and returns them as Chunks at fixed boundaries.
+// Processor reads byte blocks and splits them into chunks based on paragraph boundaries.
 type Processor struct {
-	src       textproc.ChunkProcessor
-	chunkSize int
-	buffer    []byte // Buffer for pulled chunks
-	bufPos    int
+	src             textproc.BytesProcessor
+	buffer          []byte         // Input from source
+	boundaryPattern *regexp.Regexp // Pre-compiled boundary detection
 }
 
-// Option configures a Processor.
-type Option func(*Processor)
+const boundaryPattern = `\n\n|\r\n\r\n|\n---\n|\n\*\*\*\n`
 
-// WithChunkSize sets the chunk size.
-func WithChunkSize(n int) Option {
-	return func(p *Processor) { p.chunkSize = n }
-}
-
-// NewProcessor creates a new Processor with the given ChunkProcessor source.
-// This enables pull-based lazy evaluation.
-func NewProcessor(src textproc.ChunkProcessor, opts ...Option) *Processor {
-	p := &Processor{
-		src:       src,
-		chunkSize: 4096,
+// NewProcessor creates a new Processor with the given BytesProcessor source.
+func NewProcessor(src textproc.BytesProcessor) *Processor {
+	return &Processor{
+		src:             src,
+		boundaryPattern: regexp.MustCompile(boundaryPattern),
 	}
-	for _, opt := range opts {
-		opt(p)
-	}
-	return p
 }
 
 // Next returns the next Chunk.
 func (p *Processor) Next() (textproc.Chunk, error) {
-	return p.nextFromSource()
-}
+	const maxBufferSize = 1 << 20 // 1MB
 
-// nextFromSource pulls chunks from the source and returns fixed-size chunks.
-func (p *Processor) nextFromSource() (textproc.Chunk, error) {
-	// If we have buffered data, return from there
-	if p.buffer != nil && p.bufPos < len(p.buffer) {
-		remaining := len(p.buffer) - p.bufPos
-		if remaining <= p.chunkSize {
-			chunk := make(textproc.Chunk, remaining)
-			copy(chunk, p.buffer[p.bufPos:])
-			p.buffer = nil
-			p.bufPos = 0
-			return chunk, nil
+	for {
+		// Read more data if buffer is empty
+		for len(p.buffer) == 0 {
+			block, err := p.src.Next()
+			if err == io.EOF {
+				// Source exhausted with no more data
+				return nil, io.EOF
+			}
+			if err != nil {
+				// Other error
+				return nil, err
+			}
+			p.buffer = append(p.buffer, block...)
 		}
 
-		chunk := make(textproc.Chunk, p.chunkSize)
-		copy(chunk, p.buffer[p.bufPos:p.bufPos+p.chunkSize])
-		p.bufPos += p.chunkSize
-		if p.bufPos >= len(p.buffer) {
-			p.buffer = nil
-			p.bufPos = 0
+		// Search for boundary pattern in buffer
+		loc := p.boundaryPattern.FindIndex(p.buffer)
+		if loc != nil {
+			// Found boundary: extract paragraph
+			paragraph := p.buffer[:loc[0]]
+			p.buffer = p.buffer[loc[1]:]
+
+			// Trim whitespace
+			trimmed := strings.TrimSpace(string(paragraph))
+			if trimmed != "" {
+				return textproc.Chunk(trimmed), nil
+			}
+			// Empty paragraph, continue to next
+			continue
 		}
-		return chunk, nil
-	}
 
-	// Need to pull more data from source
-	chunk, err := p.src.Next()
-	if err != nil {
-		return nil, err
-	}
+		// No boundary found - try to read more data
+		block, err := p.src.Next()
+		if err == io.EOF {
+			// Source exhausted, emit remaining content
+			trimmed := strings.TrimSpace(string(p.buffer))
+			p.buffer = nil
+			if trimmed != "" {
+				return textproc.Chunk(trimmed), nil
+			}
+			return nil, io.EOF
+		}
+		if err != nil {
+			// Other error
+			return nil, err
+		}
 
-	// If chunk fits in chunkSize, return it directly
-	if len(chunk) <= p.chunkSize {
-		return chunk, nil
-	}
+		// Check if buffer would be too large
+		if len(p.buffer)+len(block) > maxBufferSize {
+			// Emit current buffer as-is
+			trimmed := strings.TrimSpace(string(p.buffer))
+			p.buffer = block
+			if trimmed != "" {
+				return textproc.Chunk(trimmed), nil
+			}
+			continue
+		}
 
-	// Chunk is too large, buffer it and return first part
-	p.buffer = chunk
-	p.bufPos = p.chunkSize
-	result := make(textproc.Chunk, p.chunkSize)
-	copy(result, chunk[:p.chunkSize])
-	return result, nil
+		// Append new block and continue looking for boundary
+		p.buffer = append(p.buffer, block...)
+	}
 }

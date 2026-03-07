@@ -15,9 +15,8 @@ import (
 
 // Default configuration values
 const (
-	DefaultChunkSize = 4096
-	DefaultMaxBytes  = 100000
-	DefaultOverlap   = 2
+	DefaultMaxBytes = 100000
+	DefaultOverlap  = 2
 )
 
 // Chain composes text processors with lazy evaluation.
@@ -29,11 +28,11 @@ type Chain struct {
 // NewReader creates a new Chain with an io.Reader as input.
 // It builds the entire processor pipeline for pull-based lazy evaluation.
 func NewReader(r io.Reader) (*Chain, error) {
-	return NewReaderConfig(r, DefaultChunkSize, DefaultMaxBytes, DefaultOverlap)
+	return NewReaderConfig(r, DefaultMaxBytes, DefaultOverlap)
 }
 
 // NewReaderConfig creates a new Chain with custom configuration.
-func NewReaderConfig(r io.Reader, chunkSize, maxBytes, overlap int) (*Chain, error) {
+func NewReaderConfig(r io.Reader, maxBytes, overlap int) (*Chain, error) {
 	// Build the pull-based pipeline
 	readerProc := reader.New(r)
 	utf8Proc, err := utf8clean.NewProcessor(readerProc)
@@ -42,9 +41,7 @@ func NewReaderConfig(r io.Reader, chunkSize, maxBytes, overlap int) (*Chain, err
 	}
 	htmlProc := htmlstrip.NewProcessor(utf8Proc)
 	eliderProc := elider.NewProcessor(htmlProc)
-
-	btc := &bytesToChunk{src: eliderProc}
-	chunkerProc := chunker.NewProcessor(btc, chunker.WithChunkSize(chunkSize))
+	chunkerProc := chunker.NewProcessor(eliderProc)
 	splitterProc := splitter.NewProcessor(chunkerProc, maxBytes)
 	combinerProc := combiner.NewProcessor(splitterProc, overlap)
 
