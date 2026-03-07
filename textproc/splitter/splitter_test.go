@@ -9,12 +9,12 @@ import (
 
 func TestNextPassesThrough(t *testing.T) {
 	// Test that Next passes chunks through unchanged
-	chunks := []textproc.Chunk{
+	src := &mockChunkSource{chunks: []textproc.Chunk{
 		textproc.Chunk("first"),
 		textproc.Chunk("second"),
 		textproc.Chunk("third"),
-	}
-	p := New(chunks)
+	}}
+	p := NewProcessor(src, 1000)
 
 	result, err := p.Next()
 	if err != nil {
@@ -48,8 +48,8 @@ func TestNextPassesThrough(t *testing.T) {
 
 func TestNextImplementsChunkProcessor(t *testing.T) {
 	// Verify Processor satisfies textproc.ChunkProcessor interface
-	chunks := []textproc.Chunk{textproc.Chunk("test")}
-	p := New(chunks)
+	src := &mockChunkSource{chunks: []textproc.Chunk{textproc.Chunk("test")}}
+	p := NewProcessor(src, 1000)
 
 	var _ textproc.ChunkProcessor = p
 }

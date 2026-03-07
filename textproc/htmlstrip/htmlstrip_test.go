@@ -4,12 +4,14 @@ import (
 	"io"
 	"strings"
 	"testing"
+
+	"github.com/jarrod-lowe/jmap-service-libs/textproc/reader"
 )
 
 func TestNewProcessor(t *testing.T) {
-	// Test that New creates a processor with default block size
+	// Test that NewProcessor creates a processor with default block size
 	r := strings.NewReader("test data")
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	if p == nil {
 		t.Fatal("expected processor to be non-nil")
@@ -22,9 +24,9 @@ func TestNewProcessor(t *testing.T) {
 }
 
 func TestNewProcessorWithOptions(t *testing.T) {
-	// Test that New with options sets custom block size
+	// Test that NewProcessor with options sets custom block size
 	r := strings.NewReader("test data")
-	p := New(r, WithBlockSize(512))
+	p := NewProcessor(reader.New(r), WithBlockSize(512))
 
 	if p == nil {
 		t.Fatal("expected processor to be non-nil")
@@ -39,7 +41,7 @@ func TestNextSingleBlock(t *testing.T) {
 	// Test reading plain text (passthrough)
 	data := "hello world"
 	r := strings.NewReader(data)
-	p := New(r, WithBlockSize(1024))
+	p := NewProcessor(reader.New(r), WithBlockSize(1024))
 
 	result, err := p.Next()
 	if err != nil {
@@ -54,7 +56,7 @@ func TestNextSingleBlock(t *testing.T) {
 func TestNextEmptyReader(t *testing.T) {
 	// Test reading from an empty reader
 	r := strings.NewReader("")
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	result, err := p.Next()
 	if err != io.EOF {
@@ -68,7 +70,7 @@ func TestNextEmptyReader(t *testing.T) {
 func TestNextEOFThenNext(t *testing.T) {
 	// Test that Next continues to return EOF after first EOF
 	r := strings.NewReader("test")
-	p := New(r, WithBlockSize(10))
+	p := NewProcessor(reader.New(r), WithBlockSize(10))
 
 	// First call should succeed
 	result, err := p.Next()
@@ -96,7 +98,7 @@ func TestStripBasicHTML(t *testing.T) {
 	// Test basic HTML stripping: <p>Hello <b>world</b></p> should produce "Hello world"
 	data := `<p>Hello <b>world</b></p>`
 	r := strings.NewReader(data)
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
@@ -118,7 +120,7 @@ func TestImgAltText(t *testing.T) {
 	// Test that img alt text is preserved: <img src="x.jpg" alt="Photo"> should produce "Photo"
 	data := `<img src="x.jpg" alt="Photo">`
 	r := strings.NewReader(data)
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
@@ -141,7 +143,7 @@ func TestScriptStyleRemoval(t *testing.T) {
 	// Note: <p> tags are block elements that insert newlines
 	data := `<p>Hello</p><script>alert('bad');</script><p>World</p>`
 	r := strings.NewReader(data)
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
@@ -164,7 +166,7 @@ func TestBlockElementSpacing(t *testing.T) {
 	// Test that block elements insert newlines: <p>Para1</p><p>Para2</p> should produce "Para1\nPara2"
 	data := `<p>Para1</p><p>Para2</p>`
 	r := strings.NewReader(data)
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
@@ -187,7 +189,7 @@ func TestLinkHandling(t *testing.T) {
 	// Test that link text is extracted but href is ignored: <a href="url">text</a> should produce "text"
 	data := `<a href="https://example.com">Click here</a>`
 	r := strings.NewReader(data)
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
@@ -208,7 +210,7 @@ func TestMalformedHTML(t *testing.T) {
 	// Test that malformed HTML still produces output: <b>unclosed should still work
 	data := `<b>unclosed text`
 	r := strings.NewReader(data)
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
@@ -229,7 +231,7 @@ func TestMixedContent(t *testing.T) {
 	// Test mixed content: "Hello <p>World</p>" should produce "Hello World"
 	data := `Hello <p>World</p>`
 	r := strings.NewReader(data)
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
@@ -250,7 +252,7 @@ func TestAngleBracketsNotTags(t *testing.T) {
 	// Test that angle brackets that aren't tags are preserved: "Price: $5 < $10"
 	data := `Price: $5 < $10`
 	r := strings.NewReader(data)
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {
@@ -272,7 +274,7 @@ func TestPartialTags(t *testing.T) {
 	// The HTML tokenizer treats "<b text" as an incomplete tag
 	data := `some <b text`
 	r := strings.NewReader(data)
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	result, err := p.Next()
 	if err != nil && err != io.EOF {

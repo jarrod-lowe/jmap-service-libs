@@ -4,12 +4,14 @@ import (
 	"io"
 	"strings"
 	"testing"
+
+	"github.com/jarrod-lowe/jmap-service-libs/textproc/reader"
 )
 
 func TestNewProcessor(t *testing.T) {
-	// Test that New creates a processor with default block size
+	// Test that NewProcessor creates a processor with default block size
 	r := strings.NewReader("test data")
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	if p == nil {
 		t.Fatal("expected processor to be non-nil")
@@ -22,9 +24,9 @@ func TestNewProcessor(t *testing.T) {
 }
 
 func TestNewProcessorWithOptions(t *testing.T) {
-	// Test that New with options sets custom block size
+	// Test that NewProcessor with options sets custom block size
 	r := strings.NewReader("test data")
-	p := New(r, WithBlockSize(256))
+	p := NewProcessor(reader.New(r), WithBlockSize(256))
 
 	if p == nil {
 		t.Fatal("expected processor to be non-nil")
@@ -39,7 +41,7 @@ func TestNextSingleBlock(t *testing.T) {
 	// Test reading a single block
 	data := "hello world"
 	r := strings.NewReader(data)
-	p := New(r, WithBlockSize(1024))
+	p := NewProcessor(reader.New(r), WithBlockSize(1024))
 
 	result, err := p.Next()
 	if err != nil {
@@ -55,7 +57,7 @@ func TestNextMultipleBlocks(t *testing.T) {
 	// Test reading multiple blocks
 	data := "hello world, this is a test"
 	r := strings.NewReader(data)
-	p := New(r, WithBlockSize(10))
+	p := NewProcessor(reader.New(r, reader.WithBlockSize(10)))
 
 	// First block
 	result, err := p.Next()
@@ -97,7 +99,7 @@ func TestNextMultipleBlocks(t *testing.T) {
 func TestNextEmptyReader(t *testing.T) {
 	// Test reading from an empty reader
 	r := strings.NewReader("")
-	p := New(r)
+	p := NewProcessor(reader.New(r))
 
 	result, err := p.Next()
 	if err != io.EOF {
