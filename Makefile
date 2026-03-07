@@ -1,4 +1,15 @@
-.PHONY: help all-tests deps test test-race test-func lint fmt fmt-check fuzz vulncheck mod-check license-check apidiff clean setup setup-repo setup-branch-protection
+# Discover fuzz tests dynamically
+FUZZ_TESTS_PLUGINCONTRACT := $(shell go test -list 'Fuzz.*' ./plugincontract 2>/dev/null | grep '^Fuzz')
+FUZZ_TESTS_JMAPERROR := $(shell go test -list 'Fuzz.*' ./jmaperror 2>/dev/null | grep '^Fuzz')
+
+# Generate target names: fuzz-plugincontract-FuzzArgsString, etc.
+FUZZ_TARGETS_PLUGINCONTRACT := $(addprefix fuzz-plugincontract-,$(FUZZ_TESTS_PLUGINCONTRACT))
+FUZZ_TARGETS_JMAPERROR := $(addprefix fuzz-jmaperror-,$(FUZZ_TESTS_JMAPERROR))
+
+# All fuzz targets
+FUZZ_TARGETS := $(FUZZ_TARGETS_PLUGINCONTRACT) $(FUZZ_TARGETS_JMAPERROR)
+
+.PHONY: help all-tests deps test test-race test-func lint fmt fmt-check fuzz vulncheck mod-check license-check apidiff clean setup setup-repo setup-branch-protection $(FUZZ_TARGETS)
 
 FUZZ_ITERATIONS ?= 100000x
 
@@ -85,45 +96,22 @@ fmt-check:
 	fi; \
 	echo "All files are formatted."
 
-# Run fuzz tests in parallel with a time limit
-fuzz:
-	@echo "Running fuzz tests in parallel ($(FUZZ_ITERATIONS) iterations per target)..."
-	@TMPDIR=$$(mktemp -d) && \
-	trap 'rm -rf "$$TMPDIR"' EXIT && \
-	PIDS="" && \
-	NAMES="" && \
-	for pkg in plugincontract jmaperror; do \
-		for fuzz_func in $$(go test -list 'Fuzz.*' ./$$pkg/... 2>/dev/null | grep '^Fuzz'); do \
-			echo "  Starting $$pkg/$$fuzz_func..." && \
-			go test -fuzz="^$$fuzz_func$$" -fuzztime=$(FUZZ_ITERATIONS) -parallel=1 ./$$pkg/... \
-				> "$$TMPDIR/$$pkg-$$fuzz_func.out" 2>&1 & \
-			PIDS="$$PIDS $$!" && \
-			NAMES="$$NAMES $$pkg/$$fuzz_func" && \
-			true; \
-		done; \
-	done && \
-	echo "  All fuzz targets launched." && \
-	FAILED=0 && \
-	set -- $$NAMES && \
-	for pid in $$PIDS; do \
-		NAME=$$1 && shift && \
-		PKG=$${NAME%/*} && \
-		FUNC=$${NAME#*/} && \
-		if wait $$pid; then \
-			echo "  PASS: $$NAME"; \
-		else \
-			echo "  FAIL: $$NAME" && \
-			echo "--- Output from $$NAME ---" && \
-			cat "$$TMPDIR/$$PKG-$$FUNC.out" && \
-			echo "--- End output ---" && \
-			FAILED=$$((FAILED + 1)); \
-		fi; \
-	done && \
-	if [ "$$FAILED" -gt 0 ]; then \
-		echo "$$FAILED fuzz target(s) failed." && \
-		exit 1; \
-	fi && \
-	echo "All fuzz targets passed."
+# Generate explicit targets for each fuzz test
+define FUZZ_TARGET_TEMPLATE
+$(1):
+	@echo "Running $(1)..."
+	@go test -fuzz="^$(2)$$$$" -fuzztime=$$(FUZZ_ITERATIONS) ./$(3)
+endef
+
+# Generate targets for plugincontract fuzz tests
+$(foreach fuzz_test,$(FUZZ_TESTS_PLUGINCONTRACT),$(eval $(call FUZZ_TARGET_TEMPLATE,fuzz-plugincontract-$(fuzz_test),$(fuzz_test),plugincontract)))
+
+# Generate targets for jmaperror fuzz tests
+$(foreach fuzz_test,$(FUZZ_TESTS_JMAPERROR),$(eval $(call FUZZ_TARGET_TEMPLATE,fuzz-jmaperror-$(fuzz_test),$(fuzz_test),jmaperror)))
+
+# Run all fuzz targets
+fuzz: $(FUZZ_TARGETS)
+	@echo "All fuzz tests passed."
 
 # Scan dependencies for known CVEs
 vulncheck:
