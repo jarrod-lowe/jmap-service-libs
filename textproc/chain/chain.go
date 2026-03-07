@@ -9,23 +9,31 @@ import (
 	"github.com/jarrod-lowe/jmap-service-libs/textproc/elider"
 	"github.com/jarrod-lowe/jmap-service-libs/textproc/htmlstrip"
 	"github.com/jarrod-lowe/jmap-service-libs/textproc/splitter"
+	"github.com/jarrod-lowe/jmap-service-libs/textproc/utf8clean"
 )
 
 // Chain composes text processors with lazy evaluation.
 type Chain struct {
-	reader       io.Reader
-	htmlStripper *htmlstrip.Processor
-	elider       *elider.Processor
-	chunker      *chunker.Processor
-	splitter     *splitter.Processor
-	combiner     *combiner.Processor
-	byteBlocks   [][]byte
-	chunkBlocks  []textproc.Chunk
+	reader        io.Reader
+	utf8cleaner  *utf8clean.Processor
+	htmlStripper  *htmlstrip.Processor
+	elider        *elider.Processor
+	chunker       *chunker.Processor
+	splitter      *splitter.Processor
+	combiner      *combiner.Processor
+	byteBlocks    [][]byte
+	chunkBlocks   []textproc.Chunk
 }
 
 // NewReader creates a new Chain with an io.Reader as input.
 func NewReader(r io.Reader) *Chain {
 	return &Chain{reader: r}
+}
+
+// WithUTF8Cleaner adds UTF-8 cleaning to the chain.
+func (c *Chain) WithUTF8Cleaner(opts ...utf8clean.Option) *Chain {
+	c.utf8cleaner = utf8clean.New(c.reader, opts...)
+	return c
 }
 
 // WithHTMLStripper adds HTML stripping to the chain.

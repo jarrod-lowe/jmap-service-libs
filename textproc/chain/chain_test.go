@@ -24,6 +24,19 @@ func TestWithHTMLStripper(t *testing.T) {
 	}
 }
 
+func TestWithUTF8Cleaner(t *testing.T) {
+	r := strings.NewReader("test data")
+	c := NewReader(r).WithUTF8Cleaner()
+
+	if c == nil {
+		t.Fatal("expected Chain to be non-nil")
+	}
+
+	if c.utf8cleaner == nil {
+		t.Error("expected utf8cleaner to be non-nil")
+	}
+}
+
 func TestNextReturnsChunkSlice(t *testing.T) {
 	r := strings.NewReader("test data")
 	c := NewReader(r).WithHTMLStripper()
