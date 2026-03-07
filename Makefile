@@ -1,6 +1,6 @@
 .PHONY: help all-tests deps test test-race test-func lint fmt fmt-check fuzz vulncheck mod-check license-check apidiff clean setup setup-repo setup-branch-protection
 
-FUZZ_TIME ?= 30s
+FUZZ_ITERATIONS ?= 100000x
 
 help:
 	@echo "jmap-service-libs - Shared Go libraries"
@@ -15,7 +15,7 @@ help:
 	@echo "  make lint          - Run golangci-lint"
 	@echo "  make fmt           - Format Go code (go fmt ./...)"
 	@echo "  make fmt-check     - Check formatting (fails if not gofmt'd)"
-	@echo "  make fuzz          - Run fuzz tests (FUZZ_TIME=30s)"
+	@echo "  make fuzz          - Run fuzz tests (FUZZ_ITERATIONS=100000x)"
 	@echo "  make vulncheck     - Scan dependencies for known CVEs"
 	@echo "  make mod-check     - Verify go.mod and go.sum are tidy"
 	@echo "  make license-check - Check dependency license compatibility"
@@ -87,7 +87,7 @@ fmt-check:
 
 # Run fuzz tests in parallel with a time limit
 fuzz:
-	@echo "Running fuzz tests in parallel ($(FUZZ_TIME) per target)..."
+	@echo "Running fuzz tests in parallel ($(FUZZ_ITERATIONS) iterations per target)..."
 	@TMPDIR=$$(mktemp -d) && \
 	trap 'rm -rf "$$TMPDIR"' EXIT && \
 	PIDS="" && \
@@ -95,7 +95,7 @@ fuzz:
 	for pkg in plugincontract jmaperror; do \
 		for fuzz_func in $$(go test -list 'Fuzz.*' ./$$pkg/... 2>/dev/null | grep '^Fuzz'); do \
 			echo "  Starting $$pkg/$$fuzz_func..." && \
-			go test -fuzz="^$$fuzz_func$$" -fuzztime=$(FUZZ_TIME) -parallel=1 ./$$pkg/... \
+			go test -fuzz="^$$fuzz_func$$" -fuzztime=$(FUZZ_ITERATIONS) -parallel=1 ./$$pkg/... \
 				> "$$TMPDIR/$$pkg-$$fuzz_func.out" 2>&1 & \
 			PIDS="$$PIDS $$!" && \
 			NAMES="$$NAMES $$pkg/$$fuzz_func" && \
