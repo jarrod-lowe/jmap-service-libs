@@ -283,7 +283,7 @@ func TestUTF8SequenceSplitAcrossBlocks(t *testing.T) {
 	// Split after first byte: "\xe4" + "\xb8\x96\xe7\x95\x8c"
 	input := "世界"
 	src := &mockSource{blocks: [][]byte{
-		[]byte("\xe4"),           // First byte of first character
+		[]byte("\xe4"),                 // First byte of first character
 		[]byte("\xb8\x96\xe7\x95\x8c"), // Rest of characters
 	}}
 	p, err := NewProcessor(src)
@@ -385,9 +385,9 @@ func TestMultipleIncompleteSequences(t *testing.T) {
 	// Test multiple incomplete UTF-8 sequences across blocks that get reassembled
 	// Split multi-byte character, then another incomplete sequence
 	src := &mockSource{blocks: [][]byte{
-		[]byte("\xe4\xb8"),      // Incomplete 3-byte sequence (missing \x96)
-		[]byte("\x96\xe7"),      // Complete first char, incomplete second (missing \x95\x8c)
-		[]byte("\x95\x8c"),      // Complete the sequence
+		[]byte("\xe4\xb8"), // Incomplete 3-byte sequence (missing \x96)
+		[]byte("\x96\xe7"), // Complete first char, incomplete second (missing \x95\x8c)
+		[]byte("\x95\x8c"), // Complete the sequence
 	}}
 	p, err := NewProcessor(src)
 	if err != nil {
@@ -731,4 +731,3 @@ type errorSource struct {
 func (e *errorSource) Next() ([]byte, error) {
 	return nil, e.err
 }
-

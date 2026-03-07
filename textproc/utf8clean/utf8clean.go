@@ -18,7 +18,7 @@ type Processor struct {
 	blockSize        int
 	charset          string
 	transferEncoding string
-	buf              []byte      // Buffer for incomplete UTF-8 sequences
+	buf              []byte            // Buffer for incomplete UTF-8 sequences
 	charsetEncoding  encoding.Encoding // Charset decoder for conversion
 }
 
