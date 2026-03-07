@@ -77,11 +77,37 @@ func TestFullPipelineProcessesHTML(t *testing.T) {
 	}
 }
 
-func TestNextMultipleCalls(t *testing.T) {
-	// Create a larger input to get multiple chunks
-	data := strings.Repeat("test ", 1000) // ~5000 bytes
+func TestParagraphBasedChunking(t *testing.T) {
+	// Test that paragraph-based chunking works
+	data := "Paragraph one\n\nParagraph two\n\nParagraph three"
 	r := strings.NewReader(data)
-	c, err := NewReaderConfig(r, 1000, 2000, 1)
+	c, err := NewReaderConfig(r, 1000, 1)
+	if err != nil {
+		t.Fatalf("NewReaderConfig failed: %v", err)
+	}
+
+	result, err := c.Next()
+	if err != nil && err != io.EOF {
+		t.Fatalf("expected no error or EOF, got %v", err)
+	}
+
+	// Should have at least one chunk with paragraph content
+	if len(result) == 0 {
+		t.Error("expected non-empty ChunkSlice")
+	}
+
+	// Verify paragraphs are present
+	content := strings.Join(strings.Fields(string(result[0])), " ")
+	if content == "" {
+		t.Error("expected paragraph content")
+	}
+}
+
+func TestNextMultipleCalls(t *testing.T) {
+	// Create input with multiple paragraphs
+	data := "Paragraph one\n\nParagraph two\n\nParagraph three\n\nParagraph four"
+	r := strings.NewReader(data)
+	c, err := NewReaderConfig(r, 1000, 1)
 	if err != nil {
 		t.Fatalf("NewReaderConfig failed: %v", err)
 	}
