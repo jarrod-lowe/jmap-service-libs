@@ -159,6 +159,21 @@ func (p *Processor) processNormal() {
 		return
 	}
 
+	// Check for email quote lines starting with >
+	// A > at the start of input or after a newline indicates quoted text
+	if len(p.input) >= 1 && p.input[0] == '>' {
+		// Skip everything until the next newline
+		newlineIdx := strings.Index(p.input, "\n")
+		if newlineIdx == -1 {
+			// No newline in this block, skip all remaining input
+			p.input = ""
+		} else {
+			// Skip past the newline
+			p.input = p.input[newlineIdx+1:]
+		}
+		return
+	}
+
 	// Check for quote markers
 	// RFC 5322: "On [date] [name] wrote:" pattern
 	if len(p.input) >= 3 && p.input[:3] == "On " {
