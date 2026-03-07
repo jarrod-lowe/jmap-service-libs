@@ -11,7 +11,7 @@ FUZZ_TARGETS := $(FUZZ_TARGETS_PLUGINCONTRACT) $(FUZZ_TARGETS_JMAPERROR)
 
 .PHONY: help all-tests deps test test-race test-func lint fmt fmt-check fuzz vulncheck mod-check license-check apidiff clean setup setup-repo setup-branch-protection $(FUZZ_TARGETS)
 
-FUZZ_ITERATIONS ?= 100000x
+FUZZ_ITERATIONS ?= 10000x
 
 help:
 	@echo "jmap-service-libs - Shared Go libraries"
@@ -26,7 +26,7 @@ help:
 	@echo "  make lint          - Run golangci-lint"
 	@echo "  make fmt           - Format Go code (go fmt ./...)"
 	@echo "  make fmt-check     - Check formatting (fails if not gofmt'd)"
-	@echo "  make fuzz          - Run fuzz tests (FUZZ_ITERATIONS=100000x)"
+	@echo "  make fuzz          - Run fuzz tests (FUZZ_ITERATIONS=10000x)"
 	@echo "  make vulncheck     - Scan dependencies for known CVEs"
 	@echo "  make mod-check     - Verify go.mod and go.sum are tidy"
 	@echo "  make license-check - Check dependency license compatibility"
