@@ -136,6 +136,9 @@ func (p *Processor) Next() (string, error) {
 			// Check if we're closing a script or style tag
 			if tag == p.skipTag {
 				p.skipTag = ""
+			} else if p.isCellTag(tag) {
+				// Insert tab separator after table cells
+				p.buf.WriteString("\t")
 			} else if p.isBlockTag(tag) {
 				// Insert newline after block elements
 				p.buf.WriteString("\n")
@@ -165,6 +168,11 @@ func (p *Processor) Next() (string, error) {
 			// Skip these tokens
 		}
 	}
+}
+
+// isCellTag returns true if the tag is a table cell element
+func (p *Processor) isCellTag(tag string) bool {
+	return tag == "td" || tag == "th"
 }
 
 // isBlockTag returns true if the tag is a block element that should insert a newline

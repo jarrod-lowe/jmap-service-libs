@@ -5,6 +5,22 @@
     "This is a paragraph with bold and italic text.",
     "Another paragraph with a link inside.",
     "Subheading",
-    "Final paragraph after script and style tags."
+    "Final paragraph after script and style tags.",
+    "Cell 1\tCell 2",
+    "Cell 3\tCell 4",
+    "This div has inline styles and attributes.",
+    "This span has classes and data attributes with extra text.",
+    "First list item",
+    "Second list item",
+    "Ordered item one",
+    "Ordered item two",
+    "Header 3",
+    "Header 4",
+    "Header 5",
+    "Header 6",
+    "This is an image description",
+    "Submit",
+    "This is a header",
+    "This is a footer"
   ]
 ]
