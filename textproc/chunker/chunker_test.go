@@ -9,8 +9,8 @@ import (
 
 func TestNextReturnsChunks(t *testing.T) {
 	// Test that Next splits data into chunks at fixed boundaries
-	data := [][]byte{[]byte("hello world")}
-	p := New(data, WithChunkSize(5))
+	src := &mockChunkSource{chunks: []textproc.Chunk{[]byte("hello world")}}
+	p := NewProcessor(src, WithChunkSize(5))
 
 	result, err := p.Next()
 	if err != nil {
@@ -49,8 +49,8 @@ func TestNextReturnsChunks(t *testing.T) {
 
 func TestNextImplementsChunkProcessor(t *testing.T) {
 	// Verify Processor satisfies textproc.ChunkProcessor interface
-	data := [][]byte{[]byte("test")}
-	p := New(data)
+	src := &mockChunkSource{chunks: []textproc.Chunk{[]byte("test")}}
+	p := NewProcessor(src)
 
 	var _ textproc.ChunkProcessor = p
 }

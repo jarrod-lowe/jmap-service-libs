@@ -9,12 +9,12 @@ import (
 
 func TestNextWrapsChunks(t *testing.T) {
 	// Test that Next wraps each chunk in a ChunkSlice
-	chunks := []textproc.Chunk{
+	src := &mockChunkSource{chunks: []textproc.Chunk{
 		textproc.Chunk("first"),
 		textproc.Chunk("second"),
 		textproc.Chunk("third"),
-	}
-	p := New(chunks)
+	}}
+	p := NewProcessor(src, 0)
 
 	result, err := p.Next()
 	if err != nil {
@@ -57,8 +57,8 @@ func TestNextWrapsChunks(t *testing.T) {
 
 func TestNextImplementsChunkCombiner(t *testing.T) {
 	// Verify Processor satisfies textproc.ChunkCombiner interface
-	chunks := []textproc.Chunk{textproc.Chunk("test")}
-	p := New(chunks)
+	src := &mockChunkSource{chunks: []textproc.Chunk{textproc.Chunk("test")}}
+	p := NewProcessor(src, 0)
 
 	var _ textproc.ChunkCombiner = p
 }

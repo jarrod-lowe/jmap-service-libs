@@ -17,7 +17,7 @@
 // Example:
 //
 //	r := strings.NewReader("<p>Hello <b>world</b></p>")
-//	p := htmlstrip.New(r)
+//	p := htmlstrip.NewProcessor(textprocreader.New(r))
 //	result, _ := p.Next()
 //	// result is []byte("Hello world")
 package htmlstrip

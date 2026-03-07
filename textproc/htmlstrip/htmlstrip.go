@@ -11,8 +11,7 @@ import (
 // Processor reads bytes from a source and returns them in blocks
 // with HTML markup removed.
 type Processor struct {
-	r         io.Reader
-	src       textproc.BytesProcessor // NEW: pull-based source
+	src       textproc.BytesProcessor
 	blockSize int
 	tokenizer *html.Tokenizer
 	buf       strings.Builder
@@ -55,20 +54,6 @@ func (pr *processorReader) Read(p []byte) (n int, err error) {
 	return n, nil
 }
 
-// New creates a new Processor with the given reader and options.
-// The default block size is 1024 bytes.
-func New(r io.Reader, opts ...Option) *Processor {
-	p := &Processor{
-		r:         r,
-		blockSize: 1024,
-		tokenizer: html.NewTokenizer(r),
-	}
-	for _, opt := range opts {
-		opt(p)
-	}
-	return p
-}
-
 // NewProcessor creates a new Processor with the given BytesProcessor source.
 // This enables pull-based lazy evaluation.
 func NewProcessor(src textproc.BytesProcessor, opts ...Option) *Processor {
@@ -86,13 +71,8 @@ func NewProcessor(src textproc.BytesProcessor, opts ...Option) *Processor {
 // Returns io.EOF when all data has been consumed.
 func (p *Processor) Next() ([]byte, error) {
 	// Initialize tokenizer from pull-based source if needed
-	if p.tokenizer == nil && p.src != nil {
+	if p.tokenizer == nil {
 		p.tokenizer = html.NewTokenizer(&processorReader{proc: p})
-	}
-
-	// For backward compatibility with io.Reader
-	if p.tokenizer == nil && p.r != nil {
-		p.tokenizer = html.NewTokenizer(p.r)
 	}
 
 	if p.done && p.buf.Len() == 0 {

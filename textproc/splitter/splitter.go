@@ -1,16 +1,12 @@
 package splitter
 
 import (
-	"io"
-
 	"github.com/jarrod-lowe/jmap-service-libs/textproc"
 )
 
 // Processor splits chunks that exceed maxBytes into smaller chunks.
 type Processor struct {
-	chunks   []textproc.Chunk        // Deprecated: use src instead
-	src      textproc.ChunkProcessor // NEW: pull-based source
-	index    int
+	src      textproc.ChunkProcessor
 	maxBytes int
 	buffer   textproc.Chunk
 	bufPos   int
@@ -18,16 +14,6 @@ type Processor struct {
 
 // Option configures a Processor.
 type Option func(*Processor)
-
-// New creates a new Processor.
-// Deprecated: Use NewProcessor with ChunkProcessor for pull-based composition.
-func New(chunks []textproc.Chunk, opts ...Option) *Processor {
-	p := &Processor{chunks: chunks, index: 0}
-	for _, opt := range opts {
-		opt(p)
-	}
-	return p
-}
 
 // NewProcessor creates a new Processor with the given ChunkProcessor source.
 // Chunks larger than maxBytes will be split into smaller chunks.
@@ -44,18 +30,7 @@ func NewProcessor(src textproc.ChunkProcessor, maxBytes int, opts ...Option) *Pr
 
 // Next returns the next Chunk, splitting large chunks if necessary.
 func (p *Processor) Next() (textproc.Chunk, error) {
-	// Use pull-based source if available
-	if p.src != nil {
-		return p.nextFromSource()
-	}
-
-	// Fall back to []Chunk for backward compatibility
-	if p.index >= len(p.chunks) {
-		return nil, io.EOF
-	}
-	result := p.chunks[p.index]
-	p.index++
-	return result, nil
+	return p.nextFromSource()
 }
 
 // nextFromSource pulls chunks from source and splits them if they exceed maxBytes.
