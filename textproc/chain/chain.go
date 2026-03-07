@@ -36,7 +36,12 @@ func NewReader(r io.Reader) *Chain {
 func NewReaderConfig(r io.Reader, chunkSize, maxBytes, overlap int) *Chain {
 	// Build the pull-based pipeline
 	readerProc := reader.New(r)
-	utf8Proc := utf8clean.NewProcessor(readerProc)
+	utf8Proc, err := utf8clean.NewProcessor(readerProc)
+	if err != nil {
+		// NewProcessor only returns error for invalid charset/encoding
+		// We're using defaults, so this should never happen
+		panic(err)
+	}
 	htmlProc := htmlstrip.NewProcessor(utf8Proc)
 	eliderProc := elider.NewProcessor(htmlProc)
 
