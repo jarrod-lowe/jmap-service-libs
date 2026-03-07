@@ -1,5 +1,5 @@
 This is a simple paragraph of text. It contains several sentences that test the basic functionality of the text processing chain.
 
-Another paragraph here. This paragraph tests paragraph-based chunking behavior.
+Another paragraph here. It has a	tab in it. This paragraph tests paragraph-based chunking behavior.
 
-A third paragraph for good measure. The chain should properly handle multiple paragraphs and produce appropriate chunks.
+		A third paragraph, tab indented for good measure. The chain should properly handle multiple paragraphs and produce appropriate chunks.
