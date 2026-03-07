@@ -291,3 +291,49 @@ func TestPartialTags(t *testing.T) {
 		t.Fatalf("expected io.EOF on second Next(), got %v", err)
 	}
 }
+
+// NEW tests for pull-based composition with BytesProcessor
+
+func TestNewProcessorCreatesProcessor(t *testing.T) {
+	// Test that NewProcessor creates a processor with BytesProcessor source
+	src := &mockSource{blocks: [][]byte{[]byte("test")}}
+	p := NewProcessor(src)
+
+	if p == nil {
+		t.Fatal("expected Processor to be non-nil")
+	}
+}
+
+func TestNewProcessorStripsHTML(t *testing.T) {
+	// Test that NewProcessor strips HTML from pulled data
+	src := &mockSource{blocks: [][]byte{[]byte("<p>Hello <b>world</b></p>")}}
+	p := NewProcessor(src)
+
+	result, err := p.Next()
+	if err != nil && err != io.EOF {
+		t.Fatalf("expected no error or EOF, got %v", err)
+	}
+
+	if string(result) != "Hello world" {
+		t.Errorf("expected 'Hello world', got '%s'", string(result))
+	}
+
+	_, err = p.Next()
+	if err != io.EOF {
+		t.Fatalf("expected io.EOF on second Next(), got %v", err)
+	}
+}
+
+type mockSource struct {
+	blocks [][]byte
+	index  int
+}
+
+func (m *mockSource) Next() ([]byte, error) {
+	if m.index >= len(m.blocks) {
+		return nil, io.EOF
+	}
+	result := m.blocks[m.index]
+	m.index++
+	return result, nil
+}
