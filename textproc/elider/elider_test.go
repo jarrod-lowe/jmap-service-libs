@@ -309,3 +309,87 @@ func TestBlockBoundaryURL(t *testing.T) {
 		t.Errorf("expected io.EOF, got %v", err)
 	}
 }
+
+// Test: Email quotes - elide a single line starting with >
+func TestElideEmailQuotes(t *testing.T) {
+	src := &mockStringSource{blocks: []string{"> This is quoted text\nNormal text"}}
+	p := NewProcessor(src)
+
+	result, err := p.Next()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	// Should elide the quoted line starting with >
+	expected := "Normal text"
+	if result != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result)
+	}
+
+	_, err = p.Next()
+	if err != io.EOF {
+		t.Errorf("expected io.EOF, got %v", err)
+	}
+}
+
+// Test: Email quotes - elide multiple consecutive quoted lines
+func TestElideEmailQuotesMultipleLines(t *testing.T) {
+	src := &mockStringSource{blocks: []string{"> First quoted line\n> Second quoted line\n> Third quoted line\nNormal text"}}
+	p := NewProcessor(src)
+
+	result, err := p.Next()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	// Should elide all quoted lines starting with >
+	expected := "Normal text"
+	if result != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result)
+	}
+
+	_, err = p.Next()
+	if err != io.EOF {
+		t.Errorf("expected io.EOF, got %v", err)
+	}
+}
+
+// Test: Email quotes - preserve normal text around quoted lines
+func TestElideEmailQuotesMixedWithNormalText(t *testing.T) {
+	src := &mockStringSource{blocks: []string{"Before quotes\n> This is quoted\n> Also quoted\nAfter quotes"}}
+	p := NewProcessor(src)
+
+	result, err := p.Next()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	// Should preserve normal text before and after quoted lines
+	expected := "Before quotes\nAfter quotes"
+	if result != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result)
+	}
+
+	_, err = p.Next()
+	if err != io.EOF {
+		t.Errorf("expected io.EOF, got %v", err)
+	}
+}
+
+// Test: Email quotes - elide quoted lines with trailing whitespace
+func TestElideEmailQuotesWithTrailingWhitespace(t *testing.T) {
+	src := &mockStringSource{blocks: []string{"Normal\n> Quoted with spaces   \nMore normal"}}
+	p := NewProcessor(src)
+
+	result, err := p.Next()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	// Should elide the quoted line and its trailing whitespace
+	expected := "Normal\nMore normal"
+	if result != expected {
+		t.Errorf("expected '%s', got '%s'", expected, result)
+	}
+
+	_, err = p.Next()
+	if err != io.EOF {
+		t.Errorf("expected io.EOF, got %v", err)
+	}
+}
