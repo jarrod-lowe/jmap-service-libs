@@ -3,7 +3,7 @@ module github.com/jarrod-lowe/jmap-service-libs
 go 1.26.1
 
 require (
-	github.com/aws/aws-lambda-go v1.53.0
+	github.com/aws/aws-lambda-go v1.54.0
 	github.com/aws/aws-sdk-go-v2 v1.41.5
 	github.com/aws/aws-sdk-go-v2/config v1.32.13
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.0
