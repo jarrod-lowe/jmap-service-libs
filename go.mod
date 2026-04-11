@@ -7,10 +7,10 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.41.5
 	github.com/aws/aws-sdk-go-v2/config v1.32.14
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.57.1
-	go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda v0.67.0
+	go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda v0.68.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda/xrayconfig v0.67.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go-v2/otelaws v0.67.0
-	go.opentelemetry.io/contrib/propagators/aws v1.42.0
+	go.opentelemetry.io/contrib/propagators/aws v1.43.0
 	go.opentelemetry.io/otel v1.43.0
 	go.opentelemetry.io/otel/sdk v1.43.0
 	go.opentelemetry.io/otel/trace v1.43.0
@@ -41,7 +41,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/contrib/detectors/aws/lambda v0.67.0 // indirect
+	go.opentelemetry.io/contrib/detectors/aws/lambda v0.68.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.42.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.42.0 // indirect
 	go.opentelemetry.io/otel/metric v1.43.0 // indirect
