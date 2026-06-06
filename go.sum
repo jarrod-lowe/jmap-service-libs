@@ -63,10 +63,10 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
-go.opentelemetry.io/contrib/detectors/aws/lambda v0.68.0 h1:0B5mRA9cWmrRJxRyvr2tqftfd+lK2JnHQTGZfdg9NUk=
-go.opentelemetry.io/contrib/detectors/aws/lambda v0.68.0/go.mod h1:sih+cPeIWt92sQK+NPNs8ZC5zK6ItM45DP3/89/okGs=
-go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda v0.68.0 h1:O2QD6c7qLDGxMxnTikZqkGHlZPFDKzTEMTG9Nmfna3I=
-go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda v0.68.0/go.mod h1:s0brH8N7+BxkvLt1aRSuNEkyExVECr7DrmphcgKwli0=
+go.opentelemetry.io/contrib/detectors/aws/lambda v0.69.0 h1:yjkgZamA0xSsEbgkSTkRxOJYO+wZdHAMNadcqB7qlxE=
+go.opentelemetry.io/contrib/detectors/aws/lambda v0.69.0/go.mod h1:QKsfkXDTTedq1i6+xHBnn/GsYEv4shmB5twWOd5yqjo=
+go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda v0.69.0 h1:h19qNWGN27CJURJvgu9TSLRGoc6V3hHpYhz/TLGf9wI=
+go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda v0.69.0/go.mod h1:8iBKS4lndPl0NLA0y9DTKGJ3XkVdObR6QiMYfXOVzTk=
 go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda/xrayconfig v0.68.0 h1:kYSPRbMOGgOmyFj7fyQg3iW/Sk6lN06nY4r5ThAA9D0=
 go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda/xrayconfig v0.68.0/go.mod h1:n8/oP7XdIwMTNOcdRCT6oqugQgtIon7HDW46iAcZaAk=
 go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go-v2/otelaws v0.69.0 h1:SHyg1yNhvxYySbXyGMq+Y5QYbhq0/STwOxCPFj3HED0=
