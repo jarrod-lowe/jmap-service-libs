@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-lambda-go v1.55.1
 	github.com/aws/aws-sdk-go-v2 v1.47.5
 	github.com/aws/aws-sdk-go-v2/config v1.33.12
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.72.2
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.72.3
 	go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda v0.72.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-lambda-go/otellambda/xrayconfig v0.72.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/aws/aws-sdk-go-v2/otelaws v0.71.0
